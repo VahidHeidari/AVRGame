@@ -1,0 +1,52 @@
+ This is AVRGame project.
+ 
+ Introduction:
+============================
+
+ AVRGame is a small, open source, and low const handheld game console based on
+ AVR microcontroller. It works with 2 AA size battries, and have a 8x8 dot
+ matrix display. Its joystick have 4 directional, and 1 fire/rotate push buttons.
+
+     _____________________________________________
+    /             |-----------------|             \
+    |             | O O O O O O O O |             |
+    |             | O O O O O O O O |             |
+    |             | O O O O O O O O |             |
+    |    _        | O O O O O O O O |             |
+    |   |O|       | O O O O O O O O |       _____ |
+    | _  - _      | O O O O O O O O |      |: : :||
+    ||O|  |O|     | O O O O O O O O |       ----- |
+    | -  _ -      | O O O O O O O O |        _    |
+    |   |O|       -------------------       |O|   |
+    |    -   -----------------------------   -    |
+    |        |        ATMega 8/168       |        |
+    |        -----------------------------        |
+    \_____________________________________________/
+
+ AVRGame project contains the following files:
+================================================
+ Config.h
+ Display.c
+ Display.h
+ Font.c
+ Font.h
+ Joystick.c
+ Joystick.h
+ Main.c
+ Makefile
+ Pong.c
+ Pong.h
+ README
+ Schematic/AVR_game_demo.DSN
+ Schematic/scan0001.jpg
+ Tetris.c
+ Tetris.h
+
+ Known issues:
+===============
+  * No collision detection in down moving ball in Pong game.
+  * Only buttom of tetromino collision detection in tetris game.
+
+ Features:
+===========
+  * AVRGame is compatible with Codvision and gcc-avr compilers.
