@@ -87,13 +87,15 @@ void InitializeSnake()
 void GenerateFood()
 {
 	// For checking that generated food doesn't overlap with snake, we must place
-	// snake first to screen buffer.
+	// snake first to screen buffer. And also place last food position on screen
+	// to prevent regenerating same position.
 	PutSnake();
+	monitor[food_y] |= 1 << food_x;
 
 	do {
 		food_x = rand() % DISPLAY_WIDTH;
 		food_y = rand() % DISPLAY_HEIGHT;
-	} while (monitor[food_y] & (1 << food_y));
+	} while (monitor[food_y] & (1 << food_x));
 }
 
 void GetInput()
