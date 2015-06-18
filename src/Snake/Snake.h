@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *                      Snake Gamke                                           *
+ *                      Snake Game                                            *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
