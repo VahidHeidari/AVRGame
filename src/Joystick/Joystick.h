@@ -69,19 +69,19 @@
 // GCC style
 #else
 #define LEFT_PRESSED()        ((JOYSTICK_PIN & _BV(LEFT_BUTTON)) == 0)
-#define LEFT_RELEASED()       ((JOYSTICK_PIN & _BV(LEFT_BUTTON)) == 1)
+#define LEFT_RELEASED()       ((JOYSTICK_PIN & _BV(LEFT_BUTTON)) == _BV(LEFT_BUTTON))
 
 #define RIGHT_PRESSED()       ((JOYSTICK_PIN & _BV(RIGHT_BUTTON)) == 0)
-#define RIGHT_RELEASED()      ((JOYSTICK_PIN & _BV(RIGHT_BUTTON)) == 1)
+#define RIGHT_RELEASED()      ((JOYSTICK_PIN & _BV(RIGHT_BUTTON)) == _BV(RIGHT_BUTTON))
 
 #define DOWN_PRESSED()        ((JOYSTICK_PIN & _BV(DOWN_BUTTON)) == 0)
-#define DOWN_RELEASED()       ((JOYSTICK_PIN & _BV(DOWN_BUTTON)) == 1)
+#define DOWN_RELEASED()       ((JOYSTICK_PIN & _BV(DOWN_BUTTON)) == _BV(DOWN_BUTTON))
 
 #define UP_PRESSED()          ((JOYSTICK_PIN & _BV(UP_BUTTON)) == 0)
-#define UP_RELEASED()         ((JOYSTICK_PIN & _BV(UP_BUTTON)) == 1)
+#define UP_RELEASED()         ((JOYSTICK_PIN & _BV(UP_BUTTON)) == _BV(UP_BUTTON))
 
 #define SELECT_PRESSED()      ((JOYSTICK_PIN & _BV(SELECT_BUTTON)) == 0)
-#define SELECT_RELEASED()     ((JOYSTICK_PIN & (0x01 << SELECT_BUTTON)) == 1)
+#define SELECT_RELEASED()     ((JOYSTICK_PIN & _BV(SELECT_BUTTON)) == _BV(SELECT_BUTTON))
 #endif
 
 #define FIRE_PRESSED()        SELECT_PRESSED()
@@ -92,7 +92,7 @@
 #define SPEED_RELEASED()      SELECT_RELEASED()
 
 #define IS_KEY_PRESSED(BUTTON, KEYS)    (((KEYS & (0x01 << BUTTON)) == 0) ? 1 : 0)
-#define IS_KEY_RELEASED(BUTTON, KEYS)   (((KEYS & (0x01 << BUTTON)) == 1) ? 1 : 0)
+#define IS_KEY_RELEASED(BUTTON, KEYS)   (((KEYS & (0x01 << BUTTON)) == (0x01 << BUTTON)) ? 1 : 0)
 
 #define GET_KEYS()      JOYSTICK_PIN
 

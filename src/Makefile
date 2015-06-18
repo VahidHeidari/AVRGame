@@ -20,9 +20,9 @@
 F_CPU=8000000
 AVR_CHIP=__AVR_ATmega8__
 CC=avr-gcc
-FLAGS=-g -Wall -Wextra -pedantic -std=c99 -Os -DF_CPU=$(F_CPU) -D$(AVR_CHIP) \
-	  -ITetris -IPong -IGraphics -IJoystick -I.
-OBJ=display.o font.o joystick.o pong.o tetris.o main.o
+FLAGS=-gdwarf-2 -Wall -Wextra -pedantic -std=c99 -Os -DF_CPU=$(F_CPU) -D$(AVR_CHIP) \
+	  -ITetris -IPong -IGraphics -IJoystick -ISnake -I.
+OBJ=display.o font.o joystick.o pong.o tetris.o snake.o main.o
 
 all: $(OBJ)
 	$(CC) $(FLAGS) $(OBJ) -o AVR_GAME.elf
@@ -47,8 +47,13 @@ pong.o:
 tetris.o:
 	$(CC) $(FLAGS) -c Tetris/Tetris.c -o tetris.o
 
+snake.o:
+	$(CC) $(FLAGS) -c Snake/Snake.c -o snake.o
+
 clean:
-	rm -rf AVR_GAME.elf AVR_GAME.cof AVR_GAME.hex *.o *~
+	rm -rf AVR_GAME.elf AVR_GAME.cof AVR_GAME.hex *.o *~ *.aps
 	rm -rf Tetris/*.o Tetris/*~
 	rm -rf Pong/*.o Pong/*~
 	rm -rf Graphics/*.o Graphics/*~
+	rm -rf Snake/*.o Snake/*~
+	rm -rf Joystick/*.o Joystick/*~

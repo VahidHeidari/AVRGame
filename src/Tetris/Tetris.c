@@ -41,13 +41,13 @@
 
 extern int i, j, displrep;
 
-unsigned char stack[STACK_HEIGHT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static unsigned char stack[STACK_HEIGHT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /// Briks Spirits
 #ifndef __GNUC__
 flash unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT]=
 #else
-unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT] PROGMEM =
+static unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT] PROGMEM =
 #endif
 {
     {           //----------
@@ -121,13 +121,14 @@ unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT] PROGMEM =
 
 };
 
-unsigned char brik[BRIK_HEIGHT];
-int brik_x, brik_y;                     // Brik <X,Y> coordinate
-unsigned char checkmove = NOCHANGE;              // Brik Move To Left Chacking
-unsigned char brik_keycnt = BRIKE_KEYFRAMES;     // Brik Frame Counter
-unsigned char num;
-unsigned char move_keycnt = MOVE_KEYFRAMES;      // Move Brik Control Frame Counter
-unsigned char change = NOCHANGE;
+static unsigned char brik[BRIK_HEIGHT];
+static int brik_x;
+static int brik_y;                     // Brik <X,Y> coordinate
+static unsigned char checkmove = NOCHANGE;              // Brik Move To Left Chacking
+static unsigned char brik_keycnt = BRIKE_KEYFRAMES;     // Brik Frame Counter
+static unsigned char num;
+static unsigned char move_keycnt = MOVE_KEYFRAMES;      // Move Brik Control Frame Counter
+static unsigned char change = NOCHANGE;
 
 void MyMove(void)
 {
@@ -153,9 +154,10 @@ void MyMove(void)
         for (i = 0; i < BRIK_HEIGHT; ++i)
             brik[i] = sp_brik[num][i] << brik_x;
 #else
-		memcpy_P(brik, sp_brik[num], BRIK_HEIGHT);
-		for (i = 0; i < BRIK_HEIGHT; ++i)
+		for (i = 0; i < BRIK_HEIGHT; ++i) {
+			brik[i] = pgm_read_byte(&sp_brik[num][i]);
 			brik[i] <<= brik_x;
+		}
 #endif
     }
 
@@ -253,6 +255,7 @@ void PutBrik(void)
 
 void Tetris(void)
 {
+	srand(displrep * 7 % 17);
     clear_mon();
 
     NextBrik();
@@ -273,14 +276,16 @@ void NextBrik(void)
     // Reset position.
     brik_x = 3;
     brik_y = 0;
-    num = (char)rand() % NUMBER_OF_BRIKS;        // Get random number
+    num = (unsigned char)rand() % NUMBER_OF_BRIKS;        // Get random number
+	//num = 0;
 
 #ifndef __GNUC__
     for (i = 0; i < BRIK_HEIGHT; ++i)
         brik[i] = sp_brik[num][i] << brik_x;    
 #else
-	memcpy_P(brik, sp_brik[num], BRIK_HEIGHT);
-	for (i = 0; i < BRIK_HEIGHT; ++i)
+	for (i = 0; i < BRIK_HEIGHT; ++i) {
+		brik[i] = pgm_read_byte(&sp_brik[num][i]);
 		brik[i] <<= brik_x;
+	}
 #endif
 }

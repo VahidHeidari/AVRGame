@@ -37,9 +37,11 @@
 #ifndef __GNUC__
 extern flash unsigned char one[];
 extern flash unsigned char two[];
+extern flash unsigned char three[];
 #else
 extern unsigned char one[] PROGMEM;
 extern unsigned char two[] PROGMEM;
+extern unsigned char three[] PROGMEM;
 #endif
 
 #endif 

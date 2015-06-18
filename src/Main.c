@@ -33,6 +33,9 @@
 #include "Joystick.h"
 #include "Pong.h"
 #include "Tetris.h"
+#include "Snake.h"
+
+#define MAX_GAMES 3
 
 /// Game function
 typedef void (*Game)(void);
@@ -61,23 +64,51 @@ int main()
 	
 	memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
 
+	int selected_game = 0;
     while (1) {
-		// Read input
+		// Read input.
 		if (LEFT_PRESSED()) {
-			memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
-			game = Pong;
+			while (!LEFT_RELEASED())
+				disp();
+
+			if (--selected_game <= 0)
+				selected_game = MAX_GAMES;
 		}
 		else if (RIGHT_PRESSED()) {
-			memcpy_P(monitor, two, DISPLAY_BUFFER_SIZE);
-			game = Tetris;
+			while (!RIGHT_RELEASED())
+				disp();
+
+			++selected_game;
+			selected_game %= MAX_GAMES;
 		} 
-		else if (SELECT_PRESSED()) {
+
+		// Select Game.
+		switch (selected_game) {
+			case 0:
+				memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
+				game = Pong;
+				break;
+			case 1:
+				memcpy_P(monitor, two, DISPLAY_BUFFER_SIZE);
+				game = Tetris;
+				break;
+			case 2:
+				memcpy_P(monitor, three, DISPLAY_BUFFER_SIZE);
+				game = Snake;
+				break;
+		}
+
+		// Run game if selected.
+		if (SELECT_PRESSED()) {
 			while (SELECT_PRESSED())		// Wait untile select release.
 				disp();
 
 			game();		// Play game.
 		}
 
+		// Display selected game number.
         disp();
+		++displrep;
 	}
 }
+

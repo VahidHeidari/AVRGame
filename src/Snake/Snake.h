@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *          Fonts Used For Displaying Game information.                       *
+ *                      Snake Gamke                                           *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
@@ -23,54 +23,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// This file library
-#include "Font.h"
+#ifndef SNAKE_H_
+#define SNAKE_H_
 
 #ifndef __GNUC__
-flash unsigned char one[] =
-#else
-unsigned char one[] PROGMEM =
+#pragma used+
 #endif
+
+#define INITIAL_LENGTH 3
+#define MAX_SNAKE_LENGTH 15
+#define SNAKE_FRAME_CNT 32
+#define FOOD_BLINK_CNT 10
+
+typedef enum
 {
-    0xFF,		// 0b11111111,
-    0x81,		// 0b10000001,
-    0x89,		// 0b10001001,
-    0x99,		// 0b10011001,
-    0x89,		// 0b10001001,
-    0x89,		// 0b10001001,
-    0x9D,		// 0b10011101,
-    0xFF,		// 0b11111111,
-};
+	NONE = 0,
+	UP,
+	DOWN,
+	RIGHT,
+	LEFT
+} Direction;
+
+void Snake(void);
+void InitializeSnake(void);
+void GetInput(void);
+void GenerateFood(void);
+void GetNextPos(Direction dir, int* x, int* y);
+void GetPrevPos(Direction dir, int* x, int* y);
+void GetTailPos(const Direction* worm, int length, int* x, int* y);
+void CheckSelfEat(void);
+void CheckFeed(void);
+void PutFood(void);
+void PutSnake(void);
+void MoveSnake(void);
 
 #ifndef __GNUC__
-flash unsigned char two[] =
-#else
-unsigned char two[] PROGMEM =
+#pragma used-
 #endif
-{
-    0xFF,		// 0b11111111,
-    0x81,		// 0b10000001,
-    0x99,		// 0b10011001,
-    0x85,		// 0b10000101,
-    0x89,		// 0b10001001,
-    0x91,		// 0b10010001,
-    0x9D,		// 0b10011101,
-    0xFF,		// 0b11111111,
-};
 
-#ifndef __GNUC__
-flash unsigned char three[] =
-#else
-unsigned char three[] PROGMEM =
 #endif
-{
-    0xFF,		// 0b11111111,
-    0x81,		// 0b10000001,
-    0xBD,		// 0b10111101,
-    0x85,		// 0b10000101,
-    0x89,		// 0b10001001,
-    0xA5,		// 0b10100101,
-    0x99,		// 0b10011001,
-    0xFF,		// 0b11111111,
-};
 

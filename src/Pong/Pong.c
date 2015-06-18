@@ -34,7 +34,8 @@
 
 extern int i, j, displrep;
 
-unsigned char ball_x = 3, ball_y = 6;                /// Ball (X, Y)
+static unsigned char ball_x = 3;
+static unsigned char ball_y = 6;                /// Ball (X, Y)
 
 /**
  * Ball dx
@@ -43,7 +44,7 @@ unsigned char ball_x = 3, ball_y = 6;                /// Ball (X, Y)
  * if dx == 1 ball moving to left
  * if dx == -1 ball moving to right
  */
-signed char dx = 1;
+static signed char dx = 1;
 
 /**
  * Ball dy
@@ -52,14 +53,14 @@ signed char dx = 1;
  * if dy == -1 ball moving upward
  * if dy == 1 ball moving downward
  */
-signed char dy = -1;
+static signed char dy = -1;
 
-signed char ball_framecnt = BALL_KEYFRAMES;             /// Ball Key Frame Counter
-char racket_x = 3;                                      /// Raket (X, 7)
-char racket_framecnt = RACKET_KEYFRAMES;                /// Raket Key Frame Counter
-unsigned char shild[SHILD_SIZE] = {0xFF, 0xFF, 0xFF};   /// Shilds
-char life = 3;                                          /// Number of lifes
-char stage = 1;                                         /// Speed Of Game
+static signed char ball_framecnt = BALL_KEYFRAMES;             /// Ball Key Frame Counter
+static char racket_x = 3;                                      /// Raket (X, 7)
+static char racket_framecnt = RACKET_KEYFRAMES;                /// Raket Key Frame Counter
+static unsigned char shild[SHILD_SIZE] = {0xFF, 0xFF, 0xFF};   /// Shilds
+static char life = 3;                                          /// Number of lifes
+static char stage = 1;                                         /// Speed Of Game
 
 void PutShild(void)
 {
