@@ -158,20 +158,6 @@ void GetPrevPos(Direction dir, int* x, int* y)
 	}
 }
 
-void GetTailPos(const Direction* snake, int length, int* x, int* y)
-{
-	int i = 0;
-	while (length--) {
-		switch (snake[i++]) {
-			case UP: --*y; break;
-			case DOWN: ++*y; break;
-			case RIGHT: --*x; break;
-			case LEFT: ++*x; break;
-			default: break;
-		}
-	}
-}
-
 void CheckSelfEat(void)
 {
 	int x = head_x;

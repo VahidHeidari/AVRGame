@@ -50,7 +50,6 @@ void GetInput(void);
 void GenerateFood(void);
 void GetNextPos(Direction dir, int* x, int* y);
 void GetPrevPos(Direction dir, int* x, int* y);
-void GetTailPos(const Direction* worm, int length, int* x, int* y);
 void CheckSelfEat(void);
 void CheckFeed(void);
 void PutFood(void);
