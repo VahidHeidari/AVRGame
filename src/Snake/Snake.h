@@ -31,7 +31,7 @@
 #endif
 
 #define INITIAL_LENGTH      3
-#define MAX_SNAKE_LENGTH    15
+#define MAX_SNAKE_LENGTH    20
 #define SNAKE_FRAME_CNT     32
 #define FOOD_BLINK_CNT      10
 

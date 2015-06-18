@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *          Fonts Used For Displaying Game information.                       *
+ *                Global variables                                            *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
@@ -18,26 +18,30 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FONT_H
-#define FONT_H
+#include "Globals.h"
 
-#ifdef __GNUC__
-#include <avr/pgmspace.h>
-#endif
-#include "Config.h"
+#include "Tetris.h"
+#include "Pong.h"
+#include "Snake.h"
 
-#define FONT_WIDTH      8
-#define FONT_HEIGHT     8
+int i;
+int j;
+int displrep;
 
-#ifndef __GNUC__
-extern flash unsigned char font[];
-#else
-extern unsigned char font[] PROGMEM;
-#endif
+int player_x;
+int player_y;
+int player_frame_cnt;
 
-#endif 
+int ball_x;
+int ball_y;
+int ball_frame_cnt;
+
+int input_frame_cnt;
+
+Game games[MAX_GAMES] = { Pong, Tetris, Snake };
+

@@ -28,14 +28,13 @@
 
 // Project libraries
 #include "Config.h"
+#include "Globals.h"
 #include "Display.h"
 #include "Joystick.h"
 #include "Font.h"
 
-extern int i, j, displrep;
-
-static unsigned char ball_x = 3;
-static unsigned char ball_y = 6;                /// Ball (X, Y)
+#define one     0
+#define two     1
 
 /**
  * Ball dx
@@ -55,9 +54,6 @@ static signed char dx = 1;
  */
 static signed char dy = -1;
 
-static signed char ball_framecnt = BALL_KEYFRAMES;             /// Ball Key Frame Counter
-static char racket_x = 3;                                      /// Raket (X, 7)
-static char racket_framecnt = RACKET_KEYFRAMES;                /// Raket Key Frame Counter
 static unsigned char shild[SHILD_SIZE] = {0xFF, 0xFF, 0xFF};   /// Shilds
 static char life = 3;                                          /// Number of lifes
 static char stage = 1;                                         /// Speed Of Game
@@ -215,10 +211,7 @@ void BallMove(void)
         // Racket failed to catch ball and ball received to floor
         if (ball_y >= 7)
         {
-#ifndef __GNUC__
-            flash
-#endif
-            unsigned char* number = one;        // Pointer to number of life
+            int number = one;        // Pointer to number of life
 
             // Initialize game variables for new game
             life--;
@@ -247,10 +240,10 @@ void BallMove(void)
                 }
 #ifndef __GNUC__
                 // Display number of lifes
-                for (i = 0; i < DISPLAY_BUFFER_SIZE; ++i, ++number)
-                    monitor[i] = *number;
+                for (i = 0; i < DISPLAY_BUFFER_SIZE; ++i)
+                    monitor[i] = font[number * FONT_HEIGHT + i]
 #else
-                memcpy_P(monitor, number, DISPLAY_BUFFER_SIZE);
+                memcpy_P(monitor, &font[number * FONT_HEIGHT], DISPLAY_BUFFER_SIZE);
 #endif
 
                 displrep = 0;
@@ -308,6 +301,13 @@ void PutSpriets(void)
 
 void Pong(void)
 {
+    // Initialize game.
+    racket_framecnt = RACKET_KEYFRAMES;         /// Raket Key Frame Counter
+    ball_framecnt = BALL_KEYFRAMES;             /// Ball Key Frame Counter
+	racket_x = 3;
+	ball_x = 3;
+	ball_y = 6;
+
     clear_mon();
 
     while (1)
@@ -319,3 +319,4 @@ void Pong(void)
         disp();
     };
 }
+

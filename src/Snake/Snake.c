@@ -27,21 +27,13 @@
 
 #include <stdlib.h>
 
+#include "Config.h"
+#include "Globals.h"
 #include "Display.h"
 #include "Joystick.h"
 
-extern int i, j, displrep;
-
-static int head_x;
-static int head_y;
 static int snake_length;
 static Direction snake[MAX_SNAKE_LENGTH];
-
-static int food_x;
-static int food_y;
-
-static int snake_frame_cnt;
-static int food_blink_cnt;
 
 void Snake()
 {
@@ -96,6 +88,9 @@ void GenerateFood()
         food_x = rand() % DISPLAY_WIDTH;
         food_y = rand() % DISPLAY_HEIGHT;
     } while (monitor[food_y] & (1 << food_x));
+
+    // Atlast clear artifacts.
+    clear_mon();
 }
 
 void GetInput()

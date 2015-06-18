@@ -27,12 +27,12 @@
 #include "Font.h"
 
 #ifndef __GNUC__
-flash unsigned char one[] =
+flash unsigned char font[] =
 #else
-unsigned char one[] PROGMEM =
+unsigned char font[] PROGMEM =
 #endif
 {
-    0xFF,        // 0b11111111,
+    0xFF,        // 0b11111111,     1
     0x81,        // 0b10000001,
     0x89,        // 0b10001001,
     0x99,        // 0b10011001,
@@ -40,15 +40,8 @@ unsigned char one[] PROGMEM =
     0x89,        // 0b10001001,
     0x9D,        // 0b10011101,
     0xFF,        // 0b11111111,
-};
 
-#ifndef __GNUC__
-flash unsigned char two[] =
-#else
-unsigned char two[] PROGMEM =
-#endif
-{
-    0xFF,        // 0b11111111,
+    0xFF,        // 0b11111111,     2
     0x81,        // 0b10000001,
     0x99,        // 0b10011001,
     0x85,        // 0b10000101,
@@ -56,15 +49,8 @@ unsigned char two[] PROGMEM =
     0x91,        // 0b10010001,
     0x9D,        // 0b10011101,
     0xFF,        // 0b11111111,
-};
 
-#ifndef __GNUC__
-flash unsigned char three[] =
-#else
-unsigned char three[] PROGMEM =
-#endif
-{
-    0xFF,        // 0b11111111,
+    0xFF,        // 0b11111111,     3
     0x81,        // 0b10000001,
     0xBD,        // 0b10111101,
     0x85,        // 0b10000101,

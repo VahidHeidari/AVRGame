@@ -28,23 +28,13 @@
 
 // Project libraries
 #include "Config.h"
+#include "Globals.h"
 #include "Display.h"
 #include "Font.h"
 #include "Joystick.h"
 #include "Pong.h"
 #include "Tetris.h"
 #include "Snake.h"
-
-#define MAX_GAMES 3
-
-/// Game function
-typedef void (*Game)(void);
-
-/// Global variables
-int i, j, displrep;
-
-/// Selected game
-Game game = Pong;
 
 /// Hardware initialization.
 void initialize_hardware(void)
@@ -55,24 +45,25 @@ void initialize_hardware(void)
 
 /// Selecting and running game.
 #ifndef __GNUC__
-void main(void)
+void
 #else
-int main()
+int
 #endif
+main(void)
 {
     initialize_hardware();
 
-    memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
+    memcpy_P(monitor, font, DISPLAY_BUFFER_SIZE);
 
     int selected_game = 0;
     while (1) {
-        // Read input.
+        // Read input and select game number.
         if (LEFT_PRESSED()) {
             while (!LEFT_RELEASED())
                 disp();
 
             if (--selected_game <= 0)
-                selected_game = MAX_GAMES;
+                selected_game = MAX_GAMES - 1;
         }
         else if (RIGHT_PRESSED()) {
             while (!RIGHT_RELEASED())
@@ -80,30 +71,17 @@ int main()
 
             ++selected_game;
             selected_game %= MAX_GAMES;
-        } 
-
-        // Select Game.
-        switch (selected_game) {
-            case 0:
-                memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
-                game = Pong;
-                break;
-            case 1:
-                memcpy_P(monitor, two, DISPLAY_BUFFER_SIZE);
-                game = Tetris;
-                break;
-            case 2:
-                memcpy_P(monitor, three, DISPLAY_BUFFER_SIZE);
-                game = Snake;
-                break;
         }
 
-        // Run game if selected.
+        // Copy selected game to screen buffer.
+        memcpy_P(monitor, font + (selected_game * FONT_HEIGHT), DISPLAY_BUFFER_SIZE);
+
+        // Run game, if selected.
         if (SELECT_PRESSED()) {
             while (SELECT_PRESSED())     // Wait untile select release.
                 disp();
 
-            game();     // Play game.
+            games[selected_game]();     // Play game.
         }
 
         // Display selected game number.

@@ -36,10 +36,9 @@
 
 // Project libraries
 #include "Config.h"
+#include "Globals.h"
 #include "Display.h"
 #include "Joystick.h"
-
-extern int i, j, displrep;
 
 static unsigned char stack[STACK_HEIGHT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -122,12 +121,8 @@ static unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT] PROGMEM =
 };
 
 static unsigned char brik[BRIK_HEIGHT];
-static int brik_x;
-static int brik_y;                     // Brik <X,Y> coordinate
 static unsigned char checkmove = NOCHANGE;              // Brik Move To Left Chacking
-static unsigned char brik_keycnt = BRIKE_KEYFRAMES;     // Brik Frame Counter
 static unsigned char num;
-static unsigned char move_keycnt = MOVE_KEYFRAMES;      // Move Brik Control Frame Counter
 static unsigned char change = NOCHANGE;
 
 void MyMove(void)
@@ -255,6 +250,10 @@ void PutBrik(void)
 
 void Tetris(void)
 {
+    // Initialize game
+    brik_keycnt = BRIKE_KEYFRAMES;     // Brik Frame Counter
+    move_keycnt = MOVE_KEYFRAMES;      // Move Brik Control Frame Counter
+
     srand(displrep * 7 % 17);
     clear_mon();
 
@@ -288,3 +287,4 @@ void NextBrik(void)
     }
 #endif
 }
+
