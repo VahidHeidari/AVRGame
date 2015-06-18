@@ -45,179 +45,179 @@ static int food_blink_cnt;
 
 void Snake()
 {
-	InitializeSnake();
+    InitializeSnake();
 
-	while (1) {
-		// Clear screen buffer.
-		clear_mon();
+    while (1) {
+        // Clear screen buffer.
+        clear_mon();
 
-		// Check input.
-		GetInput();
+        // Check input.
+        GetInput();
 
-		// Do logic.
-		CheckFeed();
-		MoveSnake();
+        // Do logic.
+        CheckFeed();
+        MoveSnake();
 
-		// Put sprites on screen buffer.
-		PutFood();
-		PutSnake();
+        // Put sprites on screen buffer.
+        PutFood();
+        PutSnake();
 
-		// Display output.
-		disp();
-	}
+        // Display output.
+        disp();
+    }
 }
 
 void InitializeSnake()
 {
-	// Put head of snake at bottom left corner of screen.
-	head_x = DISPLAY_WIDTH - 1;
-	head_y = DISPLAY_HEIGHT - INITIAL_LENGTH;
+    // Put head of snake at bottom left corner of screen.
+    head_x = DISPLAY_WIDTH - 1;
+    head_y = DISPLAY_HEIGHT - INITIAL_LENGTH;
 
-	snake_length = INITIAL_LENGTH;
-	for (i = 0; i < snake_length; ++i)
-		snake[i] = UP;
+    snake_length = INITIAL_LENGTH;
+    for (i = 0; i < snake_length; ++i)
+        snake[i] = UP;
 
-	srand(displrep * 7 % 17);
-	GenerateFood();
+    srand(displrep * 7 % 17);
+    GenerateFood();
 
-	snake_frame_cnt = SNAKE_FRAME_CNT;
-	food_blink_cnt = FOOD_BLINK_CNT;
+    snake_frame_cnt = SNAKE_FRAME_CNT;
+    food_blink_cnt = FOOD_BLINK_CNT;
 }
 
 void GenerateFood()
 {
-	// For checking that generated food doesn't overlap with snake, we must place
-	// snake first to screen buffer. And also place last food position on screen
-	// to prevent regenerating same position.
-	PutSnake();
-	monitor[food_y] |= 1 << food_x;
+    // For checking that generated food doesn't overlap with snake, we must place
+    // snake first to screen buffer. And also place last food position on screen
+    // to prevent regenerating same position.
+    PutSnake();
+    monitor[food_y] |= 1 << food_x;
 
-	do {
-		food_x = rand() % DISPLAY_WIDTH;
-		food_y = rand() % DISPLAY_HEIGHT;
-	} while (monitor[food_y] & (1 << food_x));
+    do {
+        food_x = rand() % DISPLAY_WIDTH;
+        food_y = rand() % DISPLAY_HEIGHT;
+    } while (monitor[food_y] & (1 << food_x));
 }
 
 void GetInput()
 {
-	if (snake_frame_cnt <= 0) {
-		if (LEFT_PRESSED() && snake[0] != RIGHT)
-			snake[0] = LEFT;
-		else if (RIGHT_PRESSED() && snake[0] != LEFT)
-			snake[0] = RIGHT;
-		else if (DOWN_PRESSED() && snake[0] != UP)
-			snake[0] = DOWN;
-		else if (UP_PRESSED() && snake[0] != DOWN)
-			snake[0] = UP;
-	}
+    if (snake_frame_cnt <= 0) {
+        if (LEFT_PRESSED() && snake[0] != RIGHT)
+            snake[0] = LEFT;
+        else if (RIGHT_PRESSED() && snake[0] != LEFT)
+            snake[0] = RIGHT;
+        else if (DOWN_PRESSED() && snake[0] != UP)
+            snake[0] = DOWN;
+        else if (UP_PRESSED() && snake[0] != DOWN)
+            snake[0] = UP;
+    }
 }
 
 void GetNextPos(Direction dir, int* x, int* y)
 {
-	switch (dir) {
-		case UP:
-			if (--*y < 0)
-				*y = DISPLAY_HEIGHT - 1;
-			break;
-		case DOWN:
-			++*y;
-			*y %= DISPLAY_HEIGHT;
-			break;
-		case RIGHT:
-			if (--*x < 0)
-				*x = DISPLAY_WIDTH - 1;
-			break;
-		case LEFT:
-			++*x;
-			*x %= DISPLAY_WIDTH;
-			break;
-		default:
-			break;
-	}
+    switch (dir) {
+        case UP:
+            if (--*y < 0)
+                *y = DISPLAY_HEIGHT - 1;
+            break;
+        case DOWN:
+            ++*y;
+            *y %= DISPLAY_HEIGHT;
+            break;
+        case RIGHT:
+            if (--*x < 0)
+                *x = DISPLAY_WIDTH - 1;
+            break;
+        case LEFT:
+            ++*x;
+            *x %= DISPLAY_WIDTH;
+            break;
+        default:
+            break;
+    }
 }
 
 void GetPrevPos(Direction dir, int* x, int* y)
 {
-	switch (dir) {
-		case UP:
-			++*y;
-			*y %= DISPLAY_HEIGHT;
-			break;
-		case DOWN:
-			if (--*y < 0)
-				*y = DISPLAY_HEIGHT - 1;
-			break;
-		case RIGHT:
-			++*x;
-			*x %= DISPLAY_WIDTH;
-			break;
-		case LEFT:
-			if (--*x < 0)
-				*x = DISPLAY_WIDTH - 1;
-			break;
-		default:
-			break;
-	}
+    switch (dir) {
+        case UP:
+            ++*y;
+            *y %= DISPLAY_HEIGHT;
+            break;
+        case DOWN:
+            if (--*y < 0)
+                *y = DISPLAY_HEIGHT - 1;
+            break;
+        case RIGHT:
+            ++*x;
+            *x %= DISPLAY_WIDTH;
+            break;
+        case LEFT:
+            if (--*x < 0)
+                *x = DISPLAY_WIDTH - 1;
+            break;
+        default:
+            break;
+    }
 }
 
 void CheckSelfEat(void)
 {
-	int x = head_x;
-	int y = head_y;
+    int x = head_x;
+    int y = head_y;
 
-	for (i = 1; i < snake_length; ++i) {
-		GetPrevPos(snake[i], &x, &y);
+    for (i = 1; i < snake_length; ++i) {
+        GetPrevPos(snake[i], &x, &y);
 
-		if (x == head_x && y == head_y)		// End of game
-			InitializeSnake();
-	}
+        if (x == head_x && y == head_y)     // End of game
+            InitializeSnake();
+    }
 }
 
 void CheckFeed()
 {
-	if (snake_frame_cnt <= 0) {
-		if (snake_length == MAX_SNAKE_LENGTH)		// End of game
-			InitializeSnake();
+    if (snake_frame_cnt <= 0) {
+        if (snake_length == MAX_SNAKE_LENGTH)       // End of game
+            InitializeSnake();
 
-		if (head_x == food_x && head_y == food_y) {
-			++snake_length;
-			GenerateFood();
-		}
-	}
+        if (head_x == food_x && head_y == food_y) {
+            ++snake_length;
+            GenerateFood();
+        }
+    }
 }
 
 void PutFood()
 {
-	if (--food_blink_cnt < 0) {
-		food_blink_cnt = FOOD_BLINK_CNT;
-		monitor[food_y] ^= 1 << food_x; 
-	}
+    if (--food_blink_cnt < 0) {
+        food_blink_cnt = FOOD_BLINK_CNT;
+        monitor[food_y] ^= 1 << food_x; 
+    }
 }
 
 void PutSnake()
 {
-	int x = head_x;
-	int y = head_y;
+    int x = head_x;
+    int y = head_y;
 
-	monitor[y] |= (1 << x);
-	for (i = 1; i < snake_length; ++i) {
-		GetPrevPos(snake[i], &x, &y);
-		monitor[y] |= (1 << x);
-	}
+    monitor[y] |= (1 << x);
+    for (i = 1; i < snake_length; ++i) {
+        GetPrevPos(snake[i], &x, &y);
+        monitor[y] |= (1 << x);
+    }
 }
 
 void MoveSnake()
 {
-	if (--snake_frame_cnt < 0) {
-		snake_frame_cnt = SNAKE_FRAME_CNT;
+    if (--snake_frame_cnt < 0) {
+        snake_frame_cnt = SNAKE_FRAME_CNT;
 
-		// Shift snake.
-		for (i = snake_length - 1; i >= 1; --i)
-			snake[i] = snake[i - 1];
+        // Shift snake.
+        for (i = snake_length - 1; i >= 1; --i)
+            snake[i] = snake[i - 1];
 
-		// Move head of snake to last direction.
-		GetNextPos(snake[0], &head_x, &head_y);
-		CheckSelfEat();
-	}
+        // Move head of snake to last direction.
+        GetNextPos(snake[0], &head_x, &head_y);
+        CheckSelfEat();
+    }
 }
 

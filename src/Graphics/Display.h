@@ -27,8 +27,8 @@
 #define DISPLAY_H
 
 #define DISPLAY_BUFFER_SIZE     8
-#define DISPLAY_WIDTH			8
-#define DISPLAY_HEIGHT			8
+#define DISPLAY_WIDTH           8
+#define DISPLAY_HEIGHT          8
 
 #define DISPLAY_DATA_PORT       PORTD
 #define DISPLAY_DATA_PIN        PIND

@@ -154,10 +154,10 @@ void MyMove(void)
         for (i = 0; i < BRIK_HEIGHT; ++i)
             brik[i] = sp_brik[num][i] << brik_x;
 #else
-		for (i = 0; i < BRIK_HEIGHT; ++i) {
-			brik[i] = pgm_read_byte(&sp_brik[num][i]);
-			brik[i] <<= brik_x;
-		}
+        for (i = 0; i < BRIK_HEIGHT; ++i) {
+            brik[i] = pgm_read_byte(&sp_brik[num][i]);
+            brik[i] <<= brik_x;
+        }
 #endif
     }
 
@@ -255,7 +255,7 @@ void PutBrik(void)
 
 void Tetris(void)
 {
-	srand(displrep * 7 % 17);
+    srand(displrep * 7 % 17);
     clear_mon();
 
     NextBrik();
@@ -277,15 +277,14 @@ void NextBrik(void)
     brik_x = 3;
     brik_y = 0;
     num = (unsigned char)rand() % NUMBER_OF_BRIKS;        // Get random number
-	//num = 0;
 
 #ifndef __GNUC__
     for (i = 0; i < BRIK_HEIGHT; ++i)
         brik[i] = sp_brik[num][i] << brik_x;    
 #else
-	for (i = 0; i < BRIK_HEIGHT; ++i) {
-		brik[i] = pgm_read_byte(&sp_brik[num][i]);
-		brik[i] <<= brik_x;
-	}
+    for (i = 0; i < BRIK_HEIGHT; ++i) {
+        brik[i] = pgm_read_byte(&sp_brik[num][i]);
+        brik[i] <<= brik_x;
+    }
 #endif
 }

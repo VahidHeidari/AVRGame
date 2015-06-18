@@ -50,7 +50,7 @@ Game game = Pong;
 void initialize_hardware(void)
 {
     initialize_display();
-	initialize_joystick();
+    initialize_joystick();
 }
 
 /// Selecting and running game.
@@ -61,54 +61,54 @@ int main()
 #endif
 {
     initialize_hardware();
-	
-	memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
 
-	int selected_game = 0;
+    memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
+
+    int selected_game = 0;
     while (1) {
-		// Read input.
-		if (LEFT_PRESSED()) {
-			while (!LEFT_RELEASED())
-				disp();
+        // Read input.
+        if (LEFT_PRESSED()) {
+            while (!LEFT_RELEASED())
+                disp();
 
-			if (--selected_game <= 0)
-				selected_game = MAX_GAMES;
-		}
-		else if (RIGHT_PRESSED()) {
-			while (!RIGHT_RELEASED())
-				disp();
+            if (--selected_game <= 0)
+                selected_game = MAX_GAMES;
+        }
+        else if (RIGHT_PRESSED()) {
+            while (!RIGHT_RELEASED())
+                disp();
 
-			++selected_game;
-			selected_game %= MAX_GAMES;
-		} 
+            ++selected_game;
+            selected_game %= MAX_GAMES;
+        } 
 
-		// Select Game.
-		switch (selected_game) {
-			case 0:
-				memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
-				game = Pong;
-				break;
-			case 1:
-				memcpy_P(monitor, two, DISPLAY_BUFFER_SIZE);
-				game = Tetris;
-				break;
-			case 2:
-				memcpy_P(monitor, three, DISPLAY_BUFFER_SIZE);
-				game = Snake;
-				break;
-		}
+        // Select Game.
+        switch (selected_game) {
+            case 0:
+                memcpy_P(monitor, one, DISPLAY_BUFFER_SIZE);
+                game = Pong;
+                break;
+            case 1:
+                memcpy_P(monitor, two, DISPLAY_BUFFER_SIZE);
+                game = Tetris;
+                break;
+            case 2:
+                memcpy_P(monitor, three, DISPLAY_BUFFER_SIZE);
+                game = Snake;
+                break;
+        }
 
-		// Run game if selected.
-		if (SELECT_PRESSED()) {
-			while (SELECT_PRESSED())		// Wait untile select release.
-				disp();
+        // Run game if selected.
+        if (SELECT_PRESSED()) {
+            while (SELECT_PRESSED()     // Wait untile select release.
+                disp();
 
-			game();		// Play game.
-		}
+            game();     // Play game.
+        }
 
-		// Display selected game number.
+        // Display selected game number.
         disp();
-		++displrep;
-	}
+        ++displrep;
+    }
 }
 

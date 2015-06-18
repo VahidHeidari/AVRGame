@@ -154,9 +154,9 @@ void ResetShild(void)
 void BallMove(void)
 {
 #ifndef __GNUC__
-	int i;
+    int i;
 #endif
-	int displrep;
+    int displrep;
     // Speed up ball movement.
     if (SPEED_PRESSED())
         ball_framecnt -= 2;
@@ -218,7 +218,7 @@ void BallMove(void)
 #ifndef __GNUC__
             flash
 #endif
-			unsigned char* number = one;        // Pointer to number of life
+            unsigned char* number = one;        // Pointer to number of life
 
             // Initialize game variables for new game
             life--;
@@ -250,7 +250,7 @@ void BallMove(void)
                 for (i = 0; i < DISPLAY_BUFFER_SIZE; ++i, ++number)
                     monitor[i] = *number;
 #else
-				memcpy_P(monitor, number, DISPLAY_BUFFER_SIZE);
+                memcpy_P(monitor, number, DISPLAY_BUFFER_SIZE);
 #endif
 
                 displrep = 0;
@@ -297,7 +297,7 @@ void RacketMove(void)
 
 void PutSpriets(void)
 {
-	int i;
+    int i;
     for (i = 0; i < SHILD_SIZE; ++i)            // Put shild
         monitor[i] = shild[i];
 

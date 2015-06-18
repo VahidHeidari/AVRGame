@@ -30,18 +30,18 @@
 #pragma used+
 #endif
 
-#define INITIAL_LENGTH 3
-#define MAX_SNAKE_LENGTH 15
-#define SNAKE_FRAME_CNT 32
-#define FOOD_BLINK_CNT 10
+#define INITIAL_LENGTH      3
+#define MAX_SNAKE_LENGTH    15
+#define SNAKE_FRAME_CNT     32
+#define FOOD_BLINK_CNT      10
 
 typedef enum
 {
-	NONE = 0,
-	UP,
-	DOWN,
-	RIGHT,
-	LEFT
+    NONE = 0,
+    UP,
+    DOWN,
+    RIGHT,
+    LEFT
 } Direction;
 
 void Snake(void);
