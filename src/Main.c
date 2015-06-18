@@ -100,7 +100,7 @@ int main()
 
         // Run game if selected.
         if (SELECT_PRESSED()) {
-            while (SELECT_PRESSED()     // Wait untile select release.
+            while (SELECT_PRESSED())     // Wait untile select release.
                 disp();
 
             game();     // Play game.
