@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *                Global variables                                            *
+ *                      Quarth Game                                           *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
@@ -18,31 +18,45 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef LINE_HUNTER_H_
+#define LINE_HUNTER_H_
 
-#include "Globals.h"
+#define LINE_HUNTER_INPUT_FRAME_CNT     10
 
-#include "Tetris.h"
-#include "Pong.h"
-#include "Snake.h"
-#include "Quarth.h"
+#define PLAYER_FRAME_CNT                LINE_HUNTER_INPUT_FRAME_CNT
+#define PLAYER_WIDTH                    2
+#define PLAYER_PAD                      0x03
+#define PLAYER_BASE_Y                   (DISPLAY_HEIGHT - 1)
+#define MOVE_PLAYER(X)                  (PLAYER_PAD << (X))
+#define CLEAR_PLAYER(X)                 (monitor[PLAYER_BASE_Y] &= ~(MOVE_PLAYER(X)))
+#define PUT_PLAYER(X)                   (monitor[PLAYER_BASE_Y] |=  (MOVE_PLAYER(X)))
 
-int i;
-int j;
-int displrep;
+#define BULLET_FRAME_CNT                10
+#define BULLET_START_Y                  (PLAYER_BASE_Y - 1)
+#define CLEAR_BULLET(X, Y)              (monitor[(Y)] &= ~(1 << (X)))
+#define PUT_BULLET(X, Y)                (monitor[(Y)] |=  (1 << (X)))
 
-int player_x;
-int player_y;
-int player_frame_cnt;
+#define BUILDING_FRAME_CNT              200
+#define COMPLETE_LINE					0xFF
 
-int ball_x;
-int ball_y;
-int ball_frame_cnt;
+#ifndef __GNUC__
+#pragma used+
+#endif
 
-int input_frame_cnt;
+void Quarth(void);
+void InitializeQuarth(void);
+void ShiftBuilding(void);
+void GetQuarthInput(void);
+void MoveBullet(void);
+void CheckHuntedLine(void);
 
-Game games[MAX_GAMES] = { Pong, Tetris, Snake, Quarth};
+#ifndef __GNUC__
+#pragma used-
+#endif
+
+#endif
 

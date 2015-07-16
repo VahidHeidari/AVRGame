@@ -26,7 +26,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#define MAX_GAMES       3
+#define MAX_GAMES       4
 
 /// Tetris
 #define brik_x          player_x
@@ -39,13 +39,19 @@
 #define racket_framecnt player_frame_cnt
 #define ball_framecnt   ball_frame_cnt
 
-///Snake
+/// Snake
 #define head_x          player_x
 #define head_y          player_y
 #define food_x          ball_x
 #define food_y          ball_y
 #define snake_frame_cnt player_frame_cnt
 #define food_blink_cnt  ball_frame_cnt
+
+/// Line Hunter
+#define bullet_x        ball_x
+#define bullet_y        ball_y
+#define bullet_frame_cnt    ball_frame_cnt
+#define building_frame_cnt  input_frame_cnt
 
 /// loop variables
 extern int i;
@@ -65,8 +71,14 @@ extern int ball_frame_cnt;
 /// Input variables
 extern int input_frame_cnt;
 
-/// Game function
+/// Game functions.
 typedef void (*Game)(void);
+//typedef struct
+//{
+//    void (*Initialize)(void);
+//    void (*Run)(void);
+//    void (*GetInput)(void);
+//} Game;
 
 /// Games
 extern Game games[MAX_GAMES];

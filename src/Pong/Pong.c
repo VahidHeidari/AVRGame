@@ -145,6 +145,8 @@ void ResetShild(void)
     shild[0] = 0xff;
     shild[1] = 0xff;
     shild[2] = 0xff;
+
+	clear_mon();
 }
 
 void BallMove(void)

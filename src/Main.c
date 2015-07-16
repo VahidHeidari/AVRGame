@@ -32,9 +32,6 @@
 #include "Display.h"
 #include "Font.h"
 #include "Joystick.h"
-#include "Pong.h"
-#include "Tetris.h"
-#include "Snake.h"
 
 /// Hardware initialization.
 void initialize_hardware(void)
@@ -64,6 +61,9 @@ main(void)
 
             if (--selected_game <= 0)
                 selected_game = MAX_GAMES - 1;
+
+            // Copy selected game to screen buffer.
+            memcpy_P(monitor, font + (selected_game * FONT_HEIGHT), DISPLAY_BUFFER_SIZE);
         }
         else if (RIGHT_PRESSED()) {
             while (!RIGHT_RELEASED())
@@ -71,10 +71,11 @@ main(void)
 
             ++selected_game;
             selected_game %= MAX_GAMES;
+
+            // Copy selected game to screen buffer.
+            memcpy_P(monitor, font + (selected_game * FONT_HEIGHT), DISPLAY_BUFFER_SIZE);
         }
 
-        // Copy selected game to screen buffer.
-        memcpy_P(monitor, font + (selected_game * FONT_HEIGHT), DISPLAY_BUFFER_SIZE);
 
         // Run game, if selected.
         if (SELECT_PRESSED()) {
