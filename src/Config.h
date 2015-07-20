@@ -26,16 +26,17 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// Processor is an ATMega8
+// GCC compiler
 #ifdef __GNUC__
-//#error GNUC
 #include <avr/io.h>
 
-#define flash PROGMEM
+#define flash
 #define delay_ms _delay_ms
 #define delay_us _delay_us
 
+// CodeVision compiler
 #else
+// Processor is an ATMega8
 #include <mega8.h>
 #endif
 

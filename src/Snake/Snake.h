@@ -26,10 +26,6 @@
 #ifndef SNAKE_H_
 #define SNAKE_H_
 
-#ifndef __GNUC__
-#pragma used+
-#endif
-
 #define INITIAL_LENGTH      3
 #define MAX_SNAKE_LENGTH    20
 #define SNAKE_FRAME_CNT     32
@@ -44,6 +40,8 @@ typedef enum
     LEFT
 } Direction;
 
+#include "BeginHeaderCode.h"
+
 void Snake(void);
 void InitializeSnake(void);
 void GetInput(void);
@@ -56,9 +54,7 @@ void PutFood(void);
 void PutSnake(void);
 void MoveSnake(void);
 
-#ifndef __GNUC__
-#pragma used-
-#endif
+#include "EndHeaderCode.h"
 
 #endif
 

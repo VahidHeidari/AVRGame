@@ -38,9 +38,7 @@
 #define BRIK_HEIGHT         3
 #define BRIK_WIDTH          3
 
-#ifndef __GNUC__
-#pragma used+
-#endif
+#include "BeginHeaderCode.h"
 
 void Tetris(void);
 void MyMove(void);
@@ -49,8 +47,6 @@ void CheckLine(void);
 void PutBrik(void);
 void NextBrik(void);
 
-#ifndef __GNUC__
-#pragma used-
-#endif
+#include "EndHeaderCode.h"
 
 #endif 

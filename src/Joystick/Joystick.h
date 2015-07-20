@@ -96,15 +96,11 @@
 
 #define GET_KEYS()      JOYSTICK_PIN
 
-#ifndef __GNUC__
-#pragma used+
-#endif
+#include "BeginHeaderCode.h"
 
 void initialize_joystick(void);
 unsigned char get_keys(void);
 
-#ifndef __GNUC__
-#pragma used-
-#endif
+#include "EndHeaderCode.h"
 
 #endif 

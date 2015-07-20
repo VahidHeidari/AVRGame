@@ -41,16 +41,12 @@
 /// Display buffer
 extern unsigned char monitor[DISPLAY_BUFFER_SIZE];
 
-#ifndef __GNUC__
-#pragma used+
-#endif
+#include "BeginHeaderCode.h"
 
 void initialize_display(void);
 void disp(void);
 void clear_mon(void);
 
-#ifndef __GNUC__
-#pragma used-
-#endif
+#include "EndHeaderCode.h"
 
 #endif 

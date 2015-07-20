@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *                      Pong Game                                             *
+ *                     Header Files End Code                                  *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
@@ -23,23 +23,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PONG_H
-#define PIONG_H
+#ifndef END_HEADER_CODE_H_
+#define END_HEADER_CODE_H_
 
-#define BALL_KEYFRAMES      32 
-#define RACKET_KEYFRAMES    16
-#define RACKET_SPRIET       0x03
-#define SHILD_SIZE          3
+// Enable unused functions, for CodeVision compiler.
+#ifndef __GNUC__
+#pragma used-
+#endif
 
-#include "BeginHeaderCode.h"
+#endif
 
-void Pong(void);
-void PutShild(void);
-void ResetShild(void);
-void BallMove(void);
-void RacketMove(void);
-void PutSpriets(void);
-
-#include "EndHeaderCode.h"
-
-#endif 

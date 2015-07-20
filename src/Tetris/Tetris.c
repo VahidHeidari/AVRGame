@@ -30,24 +30,18 @@
 #include <stdlib.h>
 
 // Other libraries
-#ifdef __GNUC__
-#include <avr/pgmspace.h>
-#endif
 
 // Project libraries
 #include "Config.h"
 #include "Globals.h"
 #include "Display.h"
 #include "Joystick.h"
+#include "FlashConstant.h"
 
 static unsigned char stack[STACK_HEIGHT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /// Briks Spirits
-#ifndef __GNUC__
-flash unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT]=
-#else
-static unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT] PROGMEM =
-#endif
+static FLASH_CONSTANT(unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT]) =
 {
     {           //----------
         0x00,

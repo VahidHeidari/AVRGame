@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- *                      Pong Game                                             *
+ *                   Constant Definitions In Flash.                           *
  *                                                                            *
  * This is AVRGame project. AVRGame is a small, low cost, and open source     *
  * hand held console based on AVR microcontroller.                            *
@@ -18,28 +18,26 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PONG_H
-#define PIONG_H
+#ifndef FLASH_CONSTANT_H_
+#define FLASH_CONSTANT_H_
 
-#define BALL_KEYFRAMES      32 
-#define RACKET_KEYFRAMES    16
-#define RACKET_SPRIET       0x03
-#define SHILD_SIZE          3
+// GCC compiler
+#ifdef __GNUC__
+#include <avr/pgmspace.h>
 
-#include "BeginHeaderCode.h"
+#define FLASH_CONSTANT(X) X PROGMEM
 
-void Pong(void);
-void PutShild(void);
-void ResetShild(void);
-void BallMove(void);
-void RacketMove(void);
-void PutSpriets(void);
+// CodeVision compiler
+#else
 
-#include "EndHeaderCode.h"
+#define FLASH_CONST(X) flash X
 
-#endif 
+#endif
+
+#endif
+

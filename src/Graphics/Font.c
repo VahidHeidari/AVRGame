@@ -26,11 +26,9 @@
 // This file library
 #include "Font.h"
 
-#ifndef __GNUC__
-flash unsigned char font[] =
-#else
-unsigned char font[] PROGMEM =
-#endif
+#include "FlashConstant.h"
+
+FLASH_CONSTANT(unsigned char font[]) =
 {
     0xFF,       // 0b11111111,     1
     0x81,       // 0b10000001,

@@ -26,18 +26,13 @@
 #ifndef FONT_H
 #define FONT_H
 
-#ifdef __GNUC__
-#include <avr/pgmspace.h>
-#endif
 #include "Config.h"
+
+#include "FlashConstant.h"
 
 #define FONT_WIDTH      8
 #define FONT_HEIGHT     8
 
-#ifndef __GNUC__
-extern flash unsigned char font[];
-#else
-extern unsigned char font[] PROGMEM;
-#endif
+extern FLASH_CONSTANT(unsigned char font[]);
 
 #endif 

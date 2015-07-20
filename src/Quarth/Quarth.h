@@ -43,9 +43,7 @@
 #define BUILDING_FRAME_CNT              200
 #define COMPLETE_LINE					0xFF
 
-#ifndef __GNUC__
-#pragma used+
-#endif
+#include "BeginHeaderCode.h"
 
 void Quarth(void);
 void InitializeQuarth(void);
@@ -54,9 +52,7 @@ void GetQuarthInput(void);
 void MoveBullet(void);
 void CheckHuntedLine(void);
 
-#ifndef __GNUC__
-#pragma used-
-#endif
+#include "EndHeaderCode.h"
 
 #endif
 
