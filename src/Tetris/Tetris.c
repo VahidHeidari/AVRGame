@@ -138,16 +138,9 @@ void MyMove(void)
         else if (RIGHT_PRESSED())
             if (brick_x > 0)
                 brick_x--;
-                
-#ifndef __GNUC__
+
         for (i = 0; i < BRIK_HEIGHT; ++i)
-            brick[i] = sp_brick[num][i] << brick_x;
-#else
-        for (i = 0; i < BRIK_HEIGHT; ++i) {
-            brick[i] = pgm_read_byte(&sp_brick[num][i]);
-            brick[i] <<= brick_x;
-        }
-#endif
+            brick[i] = READ_BYTE(sp_brick[num][i]) << brick_x;
     }
 
     // Run rotating brick at full speed.    
@@ -271,14 +264,7 @@ void NextBrick(void)
     brick_y = 0;
     num = (unsigned char)rand() % NUMBER_OF_BRIKS;        // Get random number
 
-#ifndef __GNUC__
     for (i = 0; i < BRIK_HEIGHT; ++i)
-        brick[i] = sp_brick[num][i] << brick_x;    
-#else
-    for (i = 0; i < BRIK_HEIGHT; ++i) {
-        brick[i] = pgm_read_byte(&sp_brick[num][i]) << brick_x;
-        brick[i] <<= brick_x;
-    }
-#endif
+        brick[i] = READ_BYTE(sp_brick[num][i]) << brick_x;
 }
 
