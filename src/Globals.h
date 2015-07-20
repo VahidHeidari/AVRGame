@@ -29,9 +29,9 @@
 #define MAX_GAMES       4
 
 /// Tetris
-#define brik_x          player_x
-#define brik_y          player_y
-#define brik_keycnt     player_frame_cnt
+#define brick_x         player_x
+#define brick_y         player_y
+#define brick_keycnt    player_frame_cnt
 #define move_keycnt     input_frame_cnt
 
 /// Pong
@@ -71,6 +71,7 @@ extern int ball_frame_cnt;
 /// Input variables
 extern int input_frame_cnt;
 
+/// TODO: Replace Game function pointer with a better structure, and flexible mechanism.
 /// Game functions.
 typedef void (*Game)(void);
 //typedef struct
