@@ -40,8 +40,8 @@
 
 static unsigned char stack[STACK_HEIGHT] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-/// Briks Spirits
-static FLASH_CONSTANT(unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT]) =
+/// Bricks Spirits
+static FLASH_CONSTANT(unsigned char sp_brick[NUMBER_OF_BRIKS][BRIK_HEIGHT]) =
 {
     {           //----------
         0x00,
@@ -114,8 +114,8 @@ static FLASH_CONSTANT(unsigned char sp_brik[NUMBER_OF_BRIKS][BRIK_HEIGHT]) =
 
 };
 
-static unsigned char brik[BRIK_HEIGHT];
-static unsigned char checkmove = NOCHANGE;              // Brik Move To Left Chacking
+static unsigned char brick[BRIK_HEIGHT];
+static unsigned char checkmove = NOCHANGE;              // Brick Move To Left Checking.
 static unsigned char num;
 static unsigned char change = NOCHANGE;
 
@@ -128,35 +128,35 @@ void MyMove(void)
         if(LEFT_PRESSED())
         {
             for (i = 0; i < BRIK_HEIGHT; ++i)
-                checkmove |= brik[i];
+                checkmove |= brick[i];
             
             if ((checkmove & 0x80) == 0)
-                brik_x++;
+                brick_x++;
 
             checkmove = 0;
         }
         else if (RIGHT_PRESSED())
-            if (brik_x > 0)
-                brik_x--;
+            if (brick_x > 0)
+                brick_x--;
                 
 #ifndef __GNUC__
         for (i = 0; i < BRIK_HEIGHT; ++i)
-            brik[i] = sp_brik[num][i] << brik_x;
+            brick[i] = sp_brick[num][i] << brick_x;
 #else
         for (i = 0; i < BRIK_HEIGHT; ++i) {
-            brik[i] = pgm_read_byte(&sp_brik[num][i]);
-            brik[i] <<= brik_x;
+            brick[i] = pgm_read_byte(&sp_brick[num][i]);
+            brick[i] <<= brick_x;
         }
 #endif
     }
 
-    // Run rotating brik at full speed.    
+    // Run rotating brick at full speed.    
     if (ROTATE_PRESSED())
         change = NEXT;
         
     if (change == NEXT && ROTATE_RELEASED())
     {
-        // Rotate and change brik.
+        // Rotate and change brick.
         num = (num + 1) % NUMBER_OF_BRIKS;
         change = NOCHANGE;
     }
@@ -164,41 +164,41 @@ void MyMove(void)
     move_keycnt--;
 }
 
-void BrikMove(void)
+void BrickMove(void)
 {
-    if (brik_keycnt <= 0)
+    if (brick_keycnt <= 0)
     {
-        brik_keycnt = BRIKE_KEYFRAMES;
+        brick_keycnt = BRIKE_KEYFRAMES;
 
-        // Check below of brik
-        if ((brik[2] & stack[brik_y + STACK_OFF_SCREEN]) != 0)
+        // Check below of brick
+        if ((brick[2] & stack[brick_y + STACK_OFF_SCREEN]) != 0)
         {
-            stack[brik_y + 2] |= brik[2];
-            stack[brik_y + 1] |= brik[1];
-            stack[brik_y + 0] |= brik[0];
+            stack[brick_y + 2] |= brick[2];
+            stack[brick_y + 1] |= brick[1];
+            stack[brick_y + 0] |= brick[0];
 
-            NextBrik();
+            NextBrick();
         }
         else
-            brik_y++;       // go one step down.
+            brick_y++;       // go one step down.
     }
 
-    if ((brik_keycnt <= 1) && (brik_y == 8))
+    if ((brick_keycnt <= 1) && (brick_y == 8))
     {
-        // Brik erceived at end of stack
-        stack[10] |= brik[2];
-        stack[9]  |= brik[1];
-        stack[8]  |= brik[0];
+        // Brick erceived at end of stack
+        stack[10] |= brick[2];
+        stack[9]  |= brick[1];
+        stack[8]  |= brick[0];
 
-        NextBrik();
+        NextBrick();
     }
 
-    brik_keycnt--;
+    brick_keycnt--;
 }
 
 void CheckLine(void)
 {
-    if (brik_keycnt <= 1)
+    if (brick_keycnt <= 1)
     {
         for (i = STACK_HEIGHT - 1; i >= STACK_OFF_SCREEN; --i)
         {
@@ -233,51 +233,51 @@ void CheckLine(void)
     }
 }
 
-void PutBrik(void)
+void PutBrick(void)
 {
     for (i = 0; i < DISPLAY_BUFFER_SIZE; ++i)
         monitor[i] = stack[i + STACK_OFF_SCREEN];
 
     for (i = 0; i < BRIK_HEIGHT; ++i)
-        monitor[brik_y + i - BRIK_HEIGHT] |= brik[i];
+        monitor[brick_y + i - BRIK_HEIGHT] |= brick[i];
 }
 
 void Tetris(void)
 {
     // Initialize game
-    brik_keycnt = BRIKE_KEYFRAMES;     // Brik Frame Counter
-    move_keycnt = MOVE_KEYFRAMES;      // Move Brik Control Frame Counter
+    brick_keycnt = BRIKE_KEYFRAMES;     // Brick Frame Counter
+    move_keycnt = MOVE_KEYFRAMES;      // Move Brick Control Frame Counter
 
     srand(displrep * 7 % 17);
     clear_mon();
 
-    NextBrik();
+    NextBrick();
 
     while (1)
     {
         MyMove();
-        BrikMove();
+        BrickMove();
         CheckLine();
-        PutBrik();
+        PutBrick();
         disp();
         clear_mon();
     };
 }
 
-void NextBrik(void)
+void NextBrick(void)
 {
     // Reset position.
-    brik_x = 3;
-    brik_y = 0;
+    brick_x = 3;
+    brick_y = 0;
     num = (unsigned char)rand() % NUMBER_OF_BRIKS;        // Get random number
 
 #ifndef __GNUC__
     for (i = 0; i < BRIK_HEIGHT; ++i)
-        brik[i] = sp_brik[num][i] << brik_x;    
+        brick[i] = sp_brick[num][i] << brick_x;    
 #else
     for (i = 0; i < BRIK_HEIGHT; ++i) {
-        brik[i] = pgm_read_byte(&sp_brik[num][i]);
-        brik[i] <<= brik_x;
+        brick[i] = pgm_read_byte(&sp_brick[num][i]) << brick_x;
+        brick[i] <<= brick_x;
     }
 #endif
 }

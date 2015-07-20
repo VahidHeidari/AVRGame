@@ -42,10 +42,10 @@
 
 void Tetris(void);
 void MyMove(void);
-void BrikMove(void);
+void BrickMove(void);
 void CheckLine(void);
-void PutBrik(void);
-void NextBrik(void);
+void PutBrick(void);
+void NextBrick(void);
 
 #include "EndHeaderCode.h"
 
