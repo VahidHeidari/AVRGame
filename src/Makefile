@@ -600,8 +600,12 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) $(SRC:.c=.i)
-	$(REMOVE) $(SRC:.c=.[c,h]~)
-	$(REMOVE) *~
+	$(REMOVE) $(SRC:.c=*~)
+	$(REMOVE) $(SRC:.c=*_cbf)
+	$(REMOVE) $(SRC:.c=*@)
+	$(REMOVE) $(SRC:.c=*hdr)
+	$(REMOVE) $(SRC:.c=*!)
+	$(REMOVE) *~ *!  *_cbf *@ *hdr
 	$(REMOVEDIR) .dep
 
 

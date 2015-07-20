@@ -30,15 +30,16 @@
 #ifdef __GNUC__
 #include <avr/pgmspace.h>
 
-#define FLASH_CONSTANT(X)		X PROGMEM
-#define READ_BYTE(X)			pgm_read_byte(&X)
+#define FLASH_CONSTANT(X)       X PROGMEM
+#define READ_BYTE(X)            pgm_read_byte(&X)
 
 // CodeVision compiler
 #else
+#include <string.h>
 
-#define FLASH_CONST(X)			flash X
-#define READ_BYTE(X)			(X)
-#define memcpy_P				memcpy
+#define FLASH_CONSTANT(X)       flash X
+#define READ_BYTE(X)            (X)
+#define memcpy_P                memcpyf
 
 #endif
 

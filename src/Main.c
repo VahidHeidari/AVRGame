@@ -24,7 +24,6 @@
  */
  
 // Other libraries
-#include <avr/pgmspace.h>
 
 // Project libraries
 #include "Config.h"
@@ -32,6 +31,7 @@
 #include "Display.h"
 #include "Font.h"
 #include "Joystick.h"
+#include "FlashConstant.h"
 
 /// Hardware initialization.
 void initialize_hardware(void)
