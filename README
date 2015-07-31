@@ -23,37 +23,18 @@
     |        -----------------------------        |
     \_____________________________________________/
 
- AVRGame project contains the following files:
-================================================
-  README
-  Schematic/AVR_game_demo.DSN
-  Schematic/scan0001.jpg
-  src/Config.h
-  src/Globals.c
-  src/Globals.h
-  src/Graphics
-  src/Graphics/Display.c
-  src/Graphics/Display.h
-  src/Graphics/Font.c
-  src/Graphics/Font.h
-  src/Joystick
-  src/Joystick/Joystick.c
-  src/Joystick/Joystick.h
-  src/Main.c
-  src/Makefile
-  src/Makefile.me
-  src/Pong
-  src/Pong/Pong.c
-  src/Pong/Pong.h
-  src/Quarth
-  src/Quarth/Quarth.c
-  src/Quarth/Quarth.h
-  src/Snake
-  src/Snake/Snake.c
-  src/Snake/Snake.h
-  src/Tetris
-  src/Tetris/Tetris.c
-  src/Tetris/Tetris.h
+ AVRGame project contains the following modules and games:
+==========================================================
+  Schematics
+  Configuration
+  Cross platform utilityes
+  Global variables
+  Graphics display driver and fonts
+  Joystick
+  Pong game
+  Quarth game
+  Snake game
+  Tetris game
 
  Known issues:
 ===============

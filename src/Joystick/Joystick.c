@@ -37,3 +37,4 @@ unsigned char get_keys(void)
 {
     return JOYSTICK_PIN;
 }
+

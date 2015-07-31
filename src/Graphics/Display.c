@@ -74,3 +74,4 @@ void clear_mon(void)
     for (i = 0; i < DISPLAY_BUFFER_SIZE; ++i)
         monitor[i] = 0;
 }
+
