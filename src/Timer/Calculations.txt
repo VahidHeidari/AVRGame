@@ -1,0 +1,14 @@
+f = 1 / T
+
+clk I/O = 8000000 MHz
+Timer0 top value = 0xFF
+
+Overflow frequency = clk I/O / (Prescaler * (Top value + 1))
+
+Prescaler 256
+TOV0 frequency = 61 Hz
+TOV0 period    = 16 ms
+
+Prescaler 1024
+TOV0 frequency = 30.5 Hz
+TOV0 period    = 33 ms
