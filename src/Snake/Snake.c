@@ -69,11 +69,12 @@ void InitializeSnake()
     for (i = 0; i < snake_length; ++i)
         snake[i] = UP;
 
-    srand(displrep * 7 % 17);
     GenerateFood();
 
     snake_frame_cnt = SNAKE_FRAME_CNT;
     food_blink_cnt = FOOD_BLINK_CNT;
+
+    input_frame_cnt = SNAKE_INPUT_FRAME_CNT;
 }
 
 void GenerateFood()
@@ -95,7 +96,9 @@ void GenerateFood()
 
 void GetInput()
 {
-    if (snake_frame_cnt <= 0) {
+    if (--input_frame_cnt <= 0) {
+        input_frame_cnt = SNAKE_INPUT_FRAME_CNT;
+
         if (LEFT_PRESSED() && snake[0] != RIGHT)
             snake[0] = LEFT;
         else if (RIGHT_PRESSED() && snake[0] != LEFT)

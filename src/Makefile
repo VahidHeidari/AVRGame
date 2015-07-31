@@ -80,7 +80,7 @@ OBJDIR = .
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = Main.c Globals.c Joystick/Joystick.c Graphics/Display.c Graphics/Font.c Pong/Pong.c Tetris/Tetris.c Snake/Snake.c Quarth/Quarth.c
+SRC = Main.c Globals.c Joystick/Joystick.c Graphics/Display.c Graphics/Font.c Pong/Pong.c Tetris/Tetris.c Snake/Snake.c Quarth/Quarth.c Timer/Timer0.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
@@ -114,7 +114,7 @@ DEBUG = stabs
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = Joystick Graphics Pong Tetris Snake Quarth .
+EXTRAINCDIRS = Joystick Graphics Pong Tetris Snake Quarth Timer .
 
 
 # Compiler flag to set the C Standard level.

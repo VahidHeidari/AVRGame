@@ -44,5 +44,23 @@ int ball_frame_cnt;
 
 int input_frame_cnt;
 
-Game games[MAX_GAMES] = { Pong, Tetris, Snake, Quarth};
+GameFunction games[MAX_GAMES] = { Pong, Tetris, Snake, Quarth};
+
+//static unsigned char free_slot_index = 0;
+//static pGame registered_games[MAX_GAMES];
+
+int RegisterGame(pGame game)
+{
+//    if (free_slot_index < MAX_GAMES) {
+//        registered_games[free_slot_index] = game;
+//        return TRUE;
+//    }
+    
+    return FALSE;
+}
+
+int NumberOfRegisteredGames(void)
+{
+//    return free_slot_index;
+}
 

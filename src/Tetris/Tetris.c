@@ -241,7 +241,6 @@ void Tetris(void)
     brick_keycnt = BRIKE_KEYFRAMES;     // Brick Frame Counter
     move_keycnt = MOVE_KEYFRAMES;      // Move Brick Control Frame Counter
 
-    srand(displrep * 7 % 17);
     clear_mon();
 
     NextBrick();

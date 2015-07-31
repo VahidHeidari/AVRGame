@@ -26,6 +26,18 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#ifndef TRUE
+#define TRUE    1
+#endif
+
+#ifndef FALSE
+#define FALSE   0
+#endif
+
+#ifndef NULL
+#define NULL    0
+#endif
+
 #define MAX_GAMES       4
 
 /// Tetris
@@ -73,16 +85,22 @@ extern int input_frame_cnt;
 
 /// TODO: Replace Game function pointer with a better structure, and flexible mechanism.
 /// Game functions.
-typedef void (*Game)(void);
-//typedef struct
-//{
-//    void (*Initialize)(void);
-//    void (*Run)(void);
-//    void (*GetInput)(void);
-//} Game;
+typedef void (*GameFunction)(void);
+
+typedef struct
+{
+    void (*Initialize)(void);
+    char (*Run)(void);
+    void (*GetInput)(void);
+    void (*Render)(void);
+    void (*ClearScreen)(void);
+} Game, *pGame;
 
 /// Games
-extern Game games[MAX_GAMES];
+extern GameFunction games[MAX_GAMES];
+
+int RegisterGame(pGame game);
+int NumberOfRegisteredGames(void);
 
 #endif
 

@@ -26,10 +26,11 @@
 #ifndef SNAKE_H_
 #define SNAKE_H_
 
-#define INITIAL_LENGTH      3
-#define MAX_SNAKE_LENGTH    20
-#define SNAKE_FRAME_CNT     32
-#define FOOD_BLINK_CNT      10
+#define INITIAL_LENGTH          3
+#define MAX_SNAKE_LENGTH        20
+#define SNAKE_FRAME_CNT         32
+#define SNAKE_INPUT_FRAME_CNT   8
+#define FOOD_BLINK_CNT          10
 
 typedef enum
 {

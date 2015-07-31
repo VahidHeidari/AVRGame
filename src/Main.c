@@ -23,6 +23,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
+// Standard C libraries
+#include <stdlib.h>
+
 // Other libraries
 
 // Project libraries
@@ -32,12 +35,22 @@
 #include "Font.h"
 #include "Joystick.h"
 #include "FlashConstant.h"
+#include "Timer0.h"
 
 /// Hardware initialization.
 void initialize_hardware(void)
 {
     initialize_display();
     initialize_joystick();
+    //initialize_timer0();
+}
+
+void initialize_games(void)
+{
+    //RegisterGame(&pong);
+    //RegisterGame(&tetris);
+    //RegisterGame(&snake);
+    //RegisterGame(&quarth);
 }
 
 /// Selecting and running game.
@@ -49,6 +62,7 @@ int
 main(void)
 {
     initialize_hardware();
+    initialize_games();
 
     memcpy_P(monitor, font, DISPLAY_BUFFER_SIZE);
 
@@ -82,6 +96,7 @@ main(void)
             while (SELECT_PRESSED())     // Wait untile select release.
                 disp();
 
+            srand(displrep * 7 % 17);   // Seed random numbers.
             games[selected_game]();     // Play game.
         }
 

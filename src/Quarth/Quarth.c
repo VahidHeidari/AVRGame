@@ -78,8 +78,6 @@ void InitializeQuarth()
 
     shoot_right = TRUE;
 
-    srand(displrep);
-
     PUT_PLAYER(player_x);
 }
 
