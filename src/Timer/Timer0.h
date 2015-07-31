@@ -32,6 +32,7 @@
 #define SEC2USEC(X)             ((X) * 1000000L)
 
 #define TIMER0_PRESCALER        1024L
+#define TIMER0_PRESCALER_TCCR0  0x05
 #define TIMER0_OVF_INTERVALS    ((1000.0 / (F_CPU / (TIMER0_PRESCALER * 256.0))))
 
 #define IDLE_TIME_SECONDS       2L
@@ -42,9 +43,25 @@
     TCCR0 = 0;                  \
 } while (0)
 
+#define START_TIMER0()  do {        \
+    TCCR0 = TIMER0_PRESCALER_TCCR0; \
+} while (0)
+
+typedef void (*Timer0Callback)(void);
+
 #include "BeginHeaderCode.h"
 
 void initialize_timer0(void);
+unsigned long timer0_get_time_ms(void);
+
+void timer0_set_callback_interval(unsigned long interval);
+unsigned long timer0_get_callback_interval(void);
+
+/// Minimum interval of one TIMER0_OVF_INTERVAL guaranteed, if interval is none zero.
+void timer0_set_callback_interval_ms(unsigned long interval);
+unsigned long timer0_get_callback_interval_ms(void);
+
+void timer0_set_callback(Timer0Callback callback);
 
 #include "EndHeaderCode.h"
 

@@ -42,7 +42,7 @@ void initialize_hardware(void)
 {
     initialize_display();
     initialize_joystick();
-    //initialize_timer0();
+    initialize_timer0();
 }
 
 void initialize_games(void)
@@ -96,13 +96,12 @@ main(void)
             while (SELECT_PRESSED())     // Wait untile select release.
                 disp();
 
-            srand(displrep * 7 % 17);   // Seed random numbers.
+            srand(TCNT0 * 7 % 17);   // Seed random numbers.
             games[selected_game]();     // Play game.
         }
 
         // Display selected game number.
         disp();
-        ++displrep;
     }
 }
 
