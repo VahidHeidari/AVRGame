@@ -26,6 +26,8 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#include "FlashConstant.h"
+
 #ifndef TRUE
 #define TRUE    1
 #endif
@@ -87,20 +89,8 @@ extern int input_frame_cnt;
 /// Game functions.
 typedef void (*GameFunction)(void);
 
-typedef struct
-{
-    void (*Initialize)(void);
-    char (*Run)(void);
-    void (*GetInput)(void);
-    void (*Render)(void);
-    void (*ClearScreen)(void);
-} Game, *pGame;
-
 /// Games
 extern GameFunction games[MAX_GAMES];
-
-int RegisterGame(pGame game);
-int NumberOfRegisteredGames(void);
 
 #endif
 

@@ -80,7 +80,7 @@ OBJDIR = .
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = Main.c Globals.c Joystick/Joystick.c Graphics/Display.c Graphics/Font.c Pong/Pong.c Tetris/Tetris.c Snake/Snake.c Quarth/Quarth.c Timer/Timer0.c
+SRC = Main.c Globals.c GameRunner.c Joystick/Joystick.c Graphics/Display.c Graphics/Font.c Pong/Pong.c Tetris/Tetris.c Snake/Snake.c Quarth/Quarth.c Timer/Timer0.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
@@ -481,7 +481,7 @@ endif
 
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
-COFFCONVERT = $(OBJCOPY) --debugging
+COFFCONVERT = $(OBJCOPY) --debugging -v
 COFFCONVERT += --change-section-address .data-0x800000
 COFFCONVERT += --change-section-address .bss-0x800000
 COFFCONVERT += --change-section-address .noinit-0x800000

@@ -36,6 +36,7 @@
 #include "Joystick.h"
 #include "FlashConstant.h"
 #include "Timer0.h"
+#include "GameRunner.h"
 
 /// Hardware initialization.
 void initialize_hardware(void)
@@ -43,14 +44,6 @@ void initialize_hardware(void)
     initialize_display();
     initialize_joystick();
     initialize_timer0();
-}
-
-void initialize_games(void)
-{
-    //RegisterGame(&pong);
-    //RegisterGame(&tetris);
-    //RegisterGame(&snake);
-    //RegisterGame(&quarth);
 }
 
 /// Selecting and running game.
@@ -62,7 +55,7 @@ int
 main(void)
 {
     initialize_hardware();
-    initialize_games();
+    InitializeGames();
 
     memcpy_P(monitor, font, DISPLAY_BUFFER_SIZE);
 

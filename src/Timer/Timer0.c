@@ -84,7 +84,7 @@ void timer0_set_callback(Timer0Callback callback)
     timer0_callback = callback;
 }
 
-static ISR(TIMER0_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
     ++current_time;     // Advance current time.
 

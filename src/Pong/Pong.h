@@ -26,14 +26,19 @@
 #ifndef PONG_H
 #define PIONG_H
 
+#include "GameRunner.h"
+
 #define BALL_KEYFRAMES      32 
 #define RACKET_KEYFRAMES    16
 #define RACKET_SPRIET       0x03
 #define SHILD_SIZE          3
 
+extern Game pong;
+
 #include "BeginHeaderCode.h"
 
-void Pong(void);
+char Pong(void);
+void InitializePong(void);
 void PutShild(void);
 void ResetShild(void);
 void BallMove(void);

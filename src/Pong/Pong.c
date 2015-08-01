@@ -28,7 +28,6 @@
 
 // Project libraries
 #include "Config.h"
-#include "Globals.h"
 #include "Display.h"
 #include "Joystick.h"
 #include "Font.h"
@@ -57,6 +56,8 @@ static signed char dy = -1;
 static unsigned char shild[SHILD_SIZE] = {0xFF, 0xFF, 0xFF};   /// Shilds
 static char life = 3;                                          /// Number of lifes
 static char stage = 1;                                         /// Speed Of Game
+
+FLASH_CONSTANT(Game) pong = {InitializePong, Pong, GameNullFunction, PutSpriets};
 
 void PutShild(void)
 {
@@ -301,16 +302,10 @@ void PutSpriets(void)
     monitor[7] |= 0x03 << racket_x;     // Put racket
 }
 
-void Pong(void)
+char Pong(void)
 {
-    // Initialize game.
-    racket_framecnt = RACKET_KEYFRAMES;         /// Raket Key Frame Counter
-    ball_framecnt = BALL_KEYFRAMES;             /// Ball Key Frame Counter
-	racket_x = 3;
-	ball_x = 3;
-	ball_y = 6;
 
-    clear_mon();
+    InitializePong();
 
     while (1)
     {
@@ -320,5 +315,19 @@ void Pong(void)
         PutSpriets();
         disp();
     };
+
+    return 1;
+}
+
+void InitializePong(void)
+{
+    // Initialize game.
+    racket_framecnt = RACKET_KEYFRAMES;         // Raket Key Frame Counter
+    ball_framecnt = BALL_KEYFRAMES;             // Ball Key Frame Counter
+	racket_x = 3;
+	ball_x = 3;
+	ball_y = 6;
+
+    clear_mon();
 }
 
