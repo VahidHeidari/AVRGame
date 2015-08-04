@@ -5,7 +5,7 @@
  AVR microcontroller. It works with 2 AA size batteries, and have a 8x8 dot
  matrix display. Its joystick have 4 directional, and 1 fire/rotate push buttons.
 
- ![AVRGameBoard AVRGameBoard](Schematic/AVRGameBoard.jpg?raw=true "AVRGame Copeleted Board")
+ ![Completed AVRGame Board](Schematic/AVRGameBoard.jpg?raw=true "Completed AVRGame Board")
 
  AVRGame project contains the following modules and games:
 
