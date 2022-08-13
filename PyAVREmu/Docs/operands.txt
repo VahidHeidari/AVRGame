@@ -1,0 +1,187 @@
+# K
+    ( 'ADIW      Rp+1:Rp, K',      '1001 0110 KKpp KKKK' ),                     # 0 <= K <= 63
+    ( 'SBIW      Rp+1:Rp, K',      '1001 0111 KKpp KKKK' ),                     # 0 <= K <= 63
+    ( 'ANDI      Rh, K',           '0111 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'CPI       Rh, K',           '0011 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'LDI       Rh, K',           '1110 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'ORI       Rh, K',           '0110 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'SBCI      Rh, K',           '0100 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'SBR       Rh, K',           '0110 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'SUBI      Rh, K',           '0101 KKKK hhhh KKKK' ),                     # 0 <= K <= 255
+    ( 'LDS       Rd, K',           '1001 000d dddd 0000 KKKK KKKK KKKK KKKK' ), # 0 <= K <= 65535
+    ( 'STS       K, Rr',           '1001 001r rrrr 0000 KKKK KKKK KKKK KKKK' ), # 0 <= K <= 65535
+    ( 'CALL      K',               '1001 010K KKKK 111K KKKK KKKK KKKK KKKK' ), # 0 <= K < 64K,       0 <= k < 4M
+    ( 'JMP       K',               '1001 010K KKKK 110K KKKK KKKK KKKK KKKK' ), # 0 <= K < 4M
+
+
+# A
+    ( 'CBI       A, b',            '1001 1000 AAAA Abbb' ),                     # 0 <= A <= 31
+    ( 'SBI       A, b',            '1001 1010 AAAA Abbb' ),                     # 0 <= A <= 31
+    ( 'SBIC      A, b',            '1001 1001 AAAA Abbb' ),                     # 0 <= A <= 31
+    ( 'SBIS      A, b',            '1001 1011 AAAA Abbb' ),                     # 0 <= A <= 31
+    ( 'IN        Rd, A',           '1011 0AAd dddd AAAA' ),                     # 0 <= A <= 63
+    ( 'OUT       A, Rr',           '1011 1AAr rrrr AAAA' ),                     # 0 <= A <= 63
+
+
+# b
+    ( 'BLD       Rd, b',           '1111 100d dddd 0bbb' ),                     # 0 <= b <= 7
+    ( 'BST       Rd, b',           '1111 101d dddd 0bbb' ),                     # 0 <= b <= 7
+    ( 'CBI       A, b',            '1001 1000 AAAA Abbb' ),                     # 0 <= b <= 7
+    ( 'SBI       A, b',            '1001 1010 AAAA Abbb' ),                     # 0 <= b <= 7
+    ( 'SBIC      A, b',            '1001 1001 AAAA Abbb' ),                     # 0 <= b <= 7
+    ( 'SBIS      A, b',            '1001 1011 AAAA Abbb' ),                     # 0 <= b <= 7
+    ( 'SBRC      Rr, b',           '1111 110r rrrr 0bbb' ),                     # 0 <= b <= 7
+    ( 'SBRS      Rr, b',           '1111 111r rrrr 0bbb' ),                     # 0 <= b <= 7
+
+
+# q
+    ( 'LDD       Rd, Y+q',         '10q0 qq0d dddd 1qqq' ),                     # 0 <= q <= 63
+    ( 'LDD       Rd, Z+q',         '10q0 qq0d dddd 0qqq' ),                     # 0 <= q <= 63
+    ( 'STD       Y+q, Rr',         '10q0 qq1r rrrr 1qqq' ),                     # 0 <= q <= 63
+    ( 'STD       Z+q, Rr',         '10q0 qq1r rrrr 0qqq' ),                     # 0 <= q <= 63
+
+
+# s
+    ( 'BCLR      s',               '1001 0100 1sss 1000' ),                     # 0 <= s <= 7
+    ( 'BRBC      s, k',            '1111 01kk kkkk ksss' ),                     # 0 <= s <= 7
+    ( 'BRBS      s, k',            '1111 00kk kkkk ksss' ),                     # 0 <= s <= 7
+    ( 'BSET      s',               '1001 0100 0sss 1000' ),                     # 0 <= s <= 7
+
+
+# p, t
+    ( 'ADIW      Rp+1:Rp, K',      '1001 0110 KKpp KKKK' ),                     # p \in {24,26,28,30}
+    ( 'SBIW      Rp+1:Rp, K',      '1001 0111 KKpp KKKK' ),                     # p \in {24,26,28,30}
+    ( 'MOVW      Rp+1:Rp, RP+1:RP','0000 0001 pppp PPPP' ),                     # p \in {0,2,...,30}
+    ( 'MOVW      Rp+1:Rp, RP+1:RP','0000 0001 pppp PPPP' ),                     # P \in {0,2,...,30}
+
+
+# d
+    ( 'ADC       Rd, Rr',          '0001 11rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'ADD       Rd, Rr',          '0000 11rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'AND       Rd, Rr',          '0010 00rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'ASR       Rd',              '1001 010d dddd 0101' ),                     # 0 <= d <= 31
+    ( 'BLD       Rd, b',           '1111 100d dddd 0bbb' ),                     # 0 <= d <= 31
+    ( 'BST       Rd, b',           '1111 101d dddd 0bbb' ),                     # 0 <= d <= 31
+    ( 'COM       Rd',              '1001 010d dddd 0000' ),                     # 0 <= d <= 31
+    ( 'CP        Rd, Rr',          '0001 01rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'CPC       Rd, Rr',          '0000 01rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'CPSE      Rd, Rr',          '0001 00rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'DEC       Rd',              '1001 010d dddd 1010' ),                     # 0 <= d <= 31
+    ( 'ELPM      Rd, Z',           '1001 000d dddd 0110' ),                     # 0 <= d <= 31
+    ( 'ELPM      Rd, Z+',          '1001 000d dddd 0111' ),                     # 0 <= d <= 31
+    ( 'EOR       Rd, Rr',          '0010 01rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'IN        Rd, A',           '1011 0AAd dddd AAAA' ),                     # 0 <= d <= 31
+    ( 'INC       Rd',              '1001 010d dddd 0011' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, X',           '1001 000d dddd 1100' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, X+',          '1001 000d dddd 1101' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, -X',          '1001 000d dddd 1110' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, Y',           '1000 000d dddd 1000' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, Y+',          '1001 000d dddd 1001' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, -Y',          '1001 000d dddd 1010' ),                     # 0 <= d <= 31
+    ( 'LDD       Rd, Y+q',         '10q0 qq0d dddd 1qqq' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, Z',           '1000 000d dddd 0000' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, Z+',          '1001 000d dddd 0001' ),                     # 0 <= d <= 31
+    ( 'LD        Rd, -Z',          '1001 000d dddd 0010' ),                     # 0 <= d <= 31
+    ( 'LDD       Rd, Z+q',         '10q0 qq0d dddd 0qqq' ),                     # 0 <= d <= 31
+    ( 'LDS       Rd, K',           '1001 000d dddd 0000 KKKK KKKK KKKK KKKK' ), # 0 <= d <= 31
+    ( 'LPM       Rd, Z',           '1001 000d dddd 0100' ),                     # 0 <= d <= 31
+    ( 'LPM       Rd, Z+',          '1001 000d dddd 0101' ),                     # 0 <= d <= 31
+    ( 'LSR       Rd',              '1001 010d dddd 0110' ),                     # 0 <= d <= 31
+    ( 'MOV       Rd, Rr',          '0010 11rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'MUL       Rd, Rr',          '1001 11rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'NEG       Rd',              '1001 010d dddd 0001' ),                     # 0 <= d <= 31
+    ( 'OR        Rd, Rr',          '0010 10rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'POP       Rd',              '1001 000d dddd 1111' ),                     # 0 <= d <= 31
+    ( 'ROR       Rd',              '1001 010d dddd 0111' ),                     # 0 <= d <= 31
+    ( 'SBC       Rd, Rr',          '0000 10rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'SUB       Rd, Rr',          '0001 10rd dddd rrrr' ),                     # 0 <= d <= 31
+    ( 'SWAP      Rd',              '1001 010d dddd 0010' ),                     # 0 <= d <= 31
+
+
+# r
+    ( 'ADC       Rd, Rr',          '0001 11rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'ADD       Rd, Rr',          '0000 11rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'AND       Rd, Rr',          '0010 00rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'CP        Rd, Rr',          '0001 01rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'CPC       Rd, Rr',          '0000 01rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'CPSE      Rd, Rr',          '0001 00rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'EOR       Rd, Rr',          '0010 01rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'MOV       Rd, Rr',          '0010 11rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'MUL       Rd, Rr',          '1001 11rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'OR        Rd, Rr',          '0010 10rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'OUT       A, Rr',           '1011 1AAr rrrr AAAA' ),                     # 0 <= r <= 31
+    ( 'PUSH      Rr',              '1001 001r rrrr 1111' ),                     # 0 <= r <= 31
+    ( 'SBC       Rd, Rr',          '0000 10rd dddd rrrr' ),                     # 0 <= r <= 31
+    ( 'SBRC      Rr, b',           '1111 110r rrrr 0bbb' ),                     # 0 <= r <= 31
+    ( 'SBRS      Rr, b',           '1111 111r rrrr 0bbb' ),                     # 0 <= r <= 31
+    ( 'ST        X, Rr',           '1001 001r rrrr 1100' ),                     # 0 <= r <= 31
+    ( 'ST        X+, Rr',          '1001 001r rrrr 1101' ),                     # 0 <= r <= 31
+    ( 'ST        -X, Rr',          '1001 001r rrrr 1110' ),                     # 0 <= r <= 31
+    ( 'ST        Y, Rr',           '1000 001r rrrr 1000' ),                     # 0 <= r <= 31
+    ( 'ST        Y+, Rr',          '1001 001r rrrr 1001' ),                     # 0 <= r <= 31
+    ( 'ST        -Y, Rr',          '1001 001r rrrr 1010' ),                     # 0 <= r <= 31
+    ( 'STD       Y+q, Rr',         '10q0 qq1r rrrr 1qqq' ),                     # 0 <= r <= 31
+    ( 'ST        Z, Rr',           '1000 001r rrrr 0000' ),                     # 0 <= r <= 31
+    ( 'ST        Z+, Rr',          '1001 001r rrrr 0001' ),                     # 0 <= r <= 31
+    ( 'ST        -Z, Rr',          '1001 001r rrrr 0010' ),                     # 0 <= r <= 31
+    ( 'STD       Z+q, Rr',         '10q0 qq1r rrrr 0qqq' ),                     # 0 <= r <= 31
+    ( 'STS       K, Rr',           '1001 001r rrrr 0000 KKKK KKKK KKKK KKKK' ), # 0 <= r <= 31
+    ( 'SUB       Rd, Rr',          '0001 10rd dddd rrrr' ),                     # 0 <= r <= 31
+
+
+# h, H
+    ( 'FMUL      Rh, RH',          '0000 0011 0hhh 1HHH' ),                     # 16 <= h <= 23
+    ( 'FMULS     Rh, RH',          '0000 0011 1hhh 0HHH' ),                     # 16 <= h <= 23
+    ( 'FMULSU    Rh, RH',          '0000 0011 1hhh 1HHH' ),                     # 16 <= h <= 23
+    ( 'MULSU     Rh, RH',          '0000 0011 0hhh 0HHH' ),                     # 16 <= h <= 23
+    ( 'MULS      Rh, RH',          '0000 0010 hhhh HHHH' ),                     # 16 <= h <= 31
+
+    ( 'FMUL      Rh, RH',          '0000 0011 0hhh 1HHH' ),                     # 16 <= H <= 23
+    ( 'FMULS     Rh, RH',          '0000 0011 1hhh 0HHH' ),                     # 16 <= H <= 23
+    ( 'FMULSU    Rh, RH',          '0000 0011 1hhh 1HHH' ),                     # 16 <= H <= 23
+    ( 'MULSU     Rh, RH',          '0000 0011 0hhh 0HHH' ),                     # 16 <= H <= 23
+    ( 'MULS      Rh, RH',          '0000 0010 hhhh HHHH' ),                     # 16 <= H <= 31
+
+    ( 'ANDI      Rh, K',           '0111 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'CPI       Rh, K',           '0011 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'LDI       Rh, K',           '1110 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'ORI       Rh, K',           '0110 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'SBCI      Rh, K',           '0100 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'SBR       Rh, K',           '0110 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+    ( 'SER       Rh',              '1110 1111 hhhh 1111' ),                     # 16 <= h <= 31
+    ( 'SUBI      Rh, K',           '0101 KKKK hhhh KKKK' ),                     # 16 <= h <= 31
+
+
+
+
+
+
+
+
+
+# k
+    ( 'BRBC      s, k',            '1111 01kk kkkk ksss' ),                     # -64 <= k <= +63
+    ( 'BRBS      s, k',            '1111 00kk kkkk ksss' ),                     # -64 <= k <= +63
+    ( 'BRCC      k',               '1111 01kk kkkk k000' ),                     # -64 <= k <= +63
+    ( 'BRCS      k',               '1111 00kk kkkk k000' ),                     # -64 <= k <= +63
+    ( 'BREQ      k',               '1111 00kk kkkk k001' ),                     # -64 <= k <= +63
+    ( 'BRGE      k',               '1111 01kk kkkk k100' ),                     # -64 <= k <= +63
+    ( 'BRHC      k',               '1111 01kk kkkk k101' ),                     # -64 <= k <= +63
+    ( 'BRHS      k',               '1111 00kk kkkk k101' ),                     # -64 <= k <= +63
+    ( 'BRID      k',               '1111 01kk kkkk k111' ),                     # -64 <= k <= +63
+    ( 'BRIE      k',               '1111 00kk kkkk k111' ),                     # -64 <= k <= +63
+    ( 'BRLO      k',               '1111 00kk kkkk k000' ),                     # -64 <= k <= +63
+    ( 'BRLT      k',               '1111 00kk kkkk k100' ),                     # -64 <= k <= +63
+    ( 'BRMI      k',               '1111 00kk kkkk k010' ),                     # -64 <= k <= +63
+    ( 'BRNE      k',               '1111 01kk kkkk k001' ),                     # -64 <= k <= +63
+    ( 'BRPL      k',               '1111 01kk kkkk k010' ),                     # -64 <= k <= +63
+    ( 'BRSH      k',               '1111 01kk kkkk k000' ),                     # -64 <= k <= +63
+    ( 'BRTC      k',               '1111 01kk kkkk k110' ),                     # -64 <= k <= +63
+    ( 'BRTS      k',               '1111 00kk kkkk k110' ),                     # -64 <= k <= +63
+    ( 'BRVC      k',               '1111 01kk kkkk k011' ),                     # -64 <= k <= +63
+    ( 'BRVS      k',               '1111 00kk kkkk k011' ),                     # -64 <= k <= +63
+
+    ( 'RCALL     k',               '1101 kkkk kkkk kkkk' ),                     # -2K <= k < 2K
+    ( 'RJMP      k',               '1100 kkkk kkkk kkkk' ),                     # -2K <= k <= 2K
+
+

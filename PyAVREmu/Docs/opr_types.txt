@@ -1,0 +1,69 @@
+REGD_REGR
+	Rd, Rr
+REGH_REGH
+	Rh, RH
+REGP_REGP
+	Rp+1:Rp, RP+1:RP
+
+
+
+REGR
+	-X, Rr
+	-Y, Rr
+	-Z, Rr
+	Rr
+	X+, Rr
+	X, Rr
+	Y+, Rr
+	Y+q, Rr
+	Z+, Rr
+REGD
+	Rd
+	Rd, -X
+	Rd, -Y
+	Rd, -Z
+	Rd, X
+	Rd, X+
+	Rd, Y+
+	Rd, Z
+	Rd, Z+
+
+
+
+CONST
+	K
+REL_CONST
+	.k
+BITS
+	s
+
+
+
+BITS_CONST
+	s, k
+
+
+
+CONST_REGR
+	K, Rr
+ADDR_REGR
+	A, Rr
+ADDR_BITS
+	A, b
+REGD_ADDR
+	Rd, A
+REGD_BITS
+	Rd, b
+REGH_CONST
+	Rh, K
+REGP_CONST
+	Rp+1:Rp, K
+REGR_CONST
+	Rr, K
+REGR_BITS
+	Rr, b
+REGD_DISP
+	Rd, Y+q
+	Rd, Z+q
+REGR_DISP
+	Z+q, Rr

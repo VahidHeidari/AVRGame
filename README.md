@@ -20,11 +20,21 @@
  * Snake game
  * Tetris game
 
+
+ Screenshot:
+==============
+
+This screenshot is captures by AVR Emulator that is written in Python.
+
+ ![Pong](Images/Pong.gif?raw=true "Pong Game")
+
+
  Known issues:
 ===============
   * No collision detection in down moving ball in Pong game.
   * Only bottom of tetromino collision detection in tetris game.
   * Quarth have a bug when bullet fired and building moves down.
+
 
  Features:
 ===========

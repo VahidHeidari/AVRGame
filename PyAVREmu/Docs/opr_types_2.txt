@@ -1,0 +1,122 @@
+NONE = 0
+						SLEEP
+						SPM
+						WDR
+						BREAK
+						EICALL
+						EIJMP
+						ELPM
+						ICALL
+						IJMP
+						LPM
+						NOP
+						RET
+						RETI
+
+
+
+REG = 1
+	Rd					ASR
+	Rd					COM
+	Rd					DEC
+	Rd					INC
+	Rd					LSR
+	Rd					NEG
+	Rd					POP
+	Rd					ROR
+	Rd					SWAP
+	Rd, -X				LD
+	Rd, -Y				LD
+	Rd, -Z				LD
+	Rd, Z				ELPM
+	Rd, Z				LPM
+	Rd, Z+				ELPM
+	Rd, Z+				LD
+	Rd, Z+				LPM
+	Rd, X				LD
+	Rd, X+				LD
+	Rd, Y+				LD
+	Rr					PUSH
+	X, Rr				ST
+	X+, Rr				ST
+	-X, Rr				ST
+	Y+, Rr				ST
+	-Y, Rr				ST
+	Z+, Rr				ST
+	-Z, Rr				ST
+
+ADDR_REG = 5
+	A, Rr				OUT
+REG_ADDR = 5
+	Rd, A				IN
+
+REG_DISP
+	Rd, Y+q				LDD
+	Rd, Z+q				LDD
+	Y+q, Rr				STD
+	Z+q, Rr				STD
+
+REG_BIT
+	Rd, b				BLD
+	Rd, b				BST
+	Rr, b				SBRC
+	Rr, b				SBRS
+
+REGH_CONST
+	Rh, K				SUBI
+	Rh, K				ANDI
+	Rh, K				CPI
+	Rh, K				LDI
+	Rh, K				ORI
+	Rh, K				SBCI
+REGP_CONST
+	Rp+1:Rp, K			ADIW
+	Rp+1:Rp, K			SBIW
+
+REG_CONST
+	Rr, K				LDS
+CONST_REG
+	K, Rr 				STS
+
+REG_REG
+	Rd, Rr				SUB
+	Rd, Rr				ADC
+	Rd, Rr				ADD
+	Rd, Rr				AND
+	Rd, Rr				CP
+	Rd, Rr				CPC
+	Rd, Rr				CPSE
+	Rd, Rr				EOR
+	Rd, Rr				MOV
+	Rd, Rr				MUL
+	Rd, Rr				OR
+	Rd, Rr				SBC
+REG_REG
+	Rh, RH				FMUL
+	Rh, RH				FMULS
+	Rh, RH				FMULSU
+	Rh, RH				MULS
+	Rh, RH				MULSU
+REGP_REGP
+	Rp+1:Rp, RP+1:RP	MOVW
+
+CONST = 2
+	K					CALL
+	K					JMP
+BIT = 3
+	s					BCLR
+	s					BSET
+REL_ADDR = 4
+	.k					RCALL
+	.k					RJMP
+
+ADDR_BIT = 6
+	A, b				SBI
+	A, b				SBIC
+	A, b				SBIS
+	A, b				CBI
+
+BIT_CONST
+	s, k				BRBC
+	s, k				BRBS
+

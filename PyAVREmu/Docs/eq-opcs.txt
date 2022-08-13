@@ -1,0 +1,92 @@
+0001 11rd dddd rrrr   ADC       Rd, Rr         0 <= d <= 31,       0 <= r <= 31
+[ADC]                 ROL       Rd             0 <= d <= 31
+
+
+0000 11rd dddd rrrr   ADD       Rd, Rr         0 <= d <= 31,       0 <= r <= 31
+[ADD]                 LSL       Rd             0 <= d <= 31
+
+
+0010 00rd dddd rrrr   AND       Rd, Rr         0 <= d <= 31,       0 <= r <= 31
+[AND]                 TST       Rd             0 <= d <= 31
+
+
+1001 0100 1sss 1000   BCLR      s              0 <= s <= 7
+1001 0100 1000 1000   CLC
+1001 0100 1101 1000   CLH
+1001 0100 1111 1000   CLI
+1001 0100 1010 1000   CLN
+1001 0100 1100 1000   CLS
+1001 0100 1110 1000   CLT
+1001 0100 1011 1000   CLV
+1001 0100 1001 1000   CLZ
+
+
+1111 01kk kkkk ksss   BRBC      s, k           0 <= s <= 7,        -64 <= k <= +63
+1111 01kk kkkk k000   BRCC      k              -64 <= k <= +63
+1111 01kk kkkk k100   BRGE      k              -64 <= k <= +63
+1111 01kk kkkk k101   BRHC      k              -64 <= k <= +63
+1111 01kk kkkk k111   BRID      k              -64 <= k <= +63
+1111 01kk kkkk k001   BRNE      k              -64 <= k <= +63
+1111 01kk kkkk k010   BRPL      k              -64 <= k <= +63
+1111 01kk kkkk k000   BRSH      k              -64 <= k <= +63
+1111 01kk kkkk k110   BRTC      k              -64 <= k <= +63
+1111 01kk kkkk k011   BRVC      k              -64 <= k <= +63
+
+
+1111 00kk kkkk ksss   BRBS      s, k           0 <= s <= 7,        -64 <= k <= +63
+1111 00kk kkkk k000   BRCS      k              -64 <= k <= +63
+1111 00kk kkkk k001   BREQ      k              -64 <= k <= +63
+1111 00kk kkkk k101   BRHS      K              -64 <= k <= +63
+1111 00kk kkkk k111   BRIE      k              -64 <= k <= +63
+1111 00kk kkkk k000   BRLO      k              -64 <= k <= +63
+1111 00kk kkkk k100   BRLT      k              -64 <= k <= +63
+1111 00kk kkkk k010   BRMI      k              -64 <= k <= +63
+1111 00kk kkkk k110   BRTS      k              -64 <= k <= +63
+1111 00kk kkkk k011   BRVS      k              -64 <= k <= +63
+
+
+1111 01kk kkkk k000   BRCC      k              -64 <= k <= +63
+1111 01kk kkkk k000   BRSH      k              -64 <= k <= +63
+
+
+1111 00kk kkkk k000   BRCS      k              -64 <= k <= +63
+1111 00kk kkkk k000   BRLO      k              -64 <= k <= +63
+
+
+1001 0100 0sss 1000   BSET      s              0 <= s <= 7
+1001 0100 0000 1000   SEC
+1001 0100 0101 1000   SEH
+1001 0100 0111 1000   SEI
+1001 0100 0010 1000   SEN
+1001 0100 0100 1000   SES
+1001 0100 0110 1000   SET
+1001 0100 0011 1000   SEV
+1001 0100 0001 1000   SEZ
+
+
+[EOR]                 CLR       Rd             0 <= d <= 31
+0010 01rd dddd rrrr   EOR       Rd, Rr         0 <= d <= 31,       0 <= r <= 31
+
+
+1000 000d dddd 1000   LD        Rd, Y          0 <= d <= 31
+10q0 qq0d dddd 1qqq   LDD       Rd, Y+q        0 <= d <= 31,       0 <= q <= 63
+
+
+1000 000d dddd 0000   LD        Rd, Z          0 <= d <= 31
+10q0 qq0d dddd 0qqq   LDD       Rd, Z+q        0 <= d <= 31,       0 <= q <= 63
+
+
+1110 KKKK dddd KKKK   LDI       Rd, K          16 <= d <= 31,      0 <= K <= 255
+1110 1111 dddd 1111   SER       Rd             16 <= d <= 31
+
+
+0110 KKKK dddd KKKK   ORI       Rd, K          16 <= d <= 31,      0 <= K <= 255
+0110 KKKK dddd KKKK   SBR       Rd, K          16 <= d <= 31,      0 <= K <= 255
+
+
+10q0 qq1r rrrr 1qqq   STD       Y+q, Rr        0 <= r <= 31,       0 <= q <= 63
+1000 001r rrrr 1000   ST        Y, Rr          0 <= r <= 31
+
+
+10q0 qq1r rrrr 0qqq   STD       Z+q, Rr        0 <= r <= 31        0 <= q <= 63
+1000 001r rrrr 0000   ST        Z, Rr          0 <= r <= 31

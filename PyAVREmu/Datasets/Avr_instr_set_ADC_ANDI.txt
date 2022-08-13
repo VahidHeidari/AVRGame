@@ -1,0 +1,5 @@
+ADC       0001 11rd dddd rrrr
+ANDI      0111 KKKK dddd KKKK
+BCLR      1001 0100 1sss 1000
+CLC       1001 0100 1000 1000
+CLH       1001 0100 1101 1000
