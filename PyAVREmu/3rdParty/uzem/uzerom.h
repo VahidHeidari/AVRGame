@@ -4,7 +4,7 @@
 Copyright (c) 2008-2016 by
 David Etherton, Eric Anderton, Alec Bourque (Uze), Filipe Rinaldi,
 Sandor Zsuga (Jubatian), Matt Pandina (Artcfox)
-	
+
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
 files (the "Software"), to deal in the Software without

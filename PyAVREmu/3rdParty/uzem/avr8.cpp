@@ -47,19 +47,19 @@ More info at uzebox.org
 
 
 
-#define X		((XL)|(XH<<8))
+#define X		((XL) | (XH << 8))
 #define DEC_X	(XL-- || XH--)
 #define INC_X	(++XL || ++XH)
 
-#define Y		((YL)|(YH<<8))
+#define Y		((YL) | (YH << 8))
 #define DEC_Y	(YL-- || YH--)
 #define INC_Y	(++YL || ++YH)
 
-#define Z		((ZL)|(ZH<<8))
+#define Z		((ZL) | (ZH << 8))
 #define DEC_Z	(ZL-- || ZH--)
 #define INC_Z	(++ZL || ++ZH)
 
-#define SP		(SPL | (SPH<<8))
+#define SP		(SPL | (SPH << 8))
 #define DEC_SP	(SPL-- || SPH--)
 #define INC_SP	(++SPL || ++SPH)
 
@@ -82,8 +82,8 @@ More info at uzebox.org
 //Interrupts vector adresses
 #define SPI_STC     	0x26
 
-#define BIT(x,b)	(((x)>>(b))&1)
-#define C			BIT(SREG,SREG_C)
+#define BIT(x,b)	(((x) >> (b)) & 1)
+#define C			BIT(SREG, SREG_C)
 
 
 // Delayed output flags. If either is set, there is a delayed out waiting to
@@ -109,24 +109,24 @@ More info at uzebox.org
 namespace ports
 {
 
-const char* IO_NAMES[64] = 
+const char* IO_NAMES[64] =
 {
-	"TWBR",         "TWSR",         "TWAR",         "TWDR",         
-	"ADCL",         "ADCH",         "ADCSRA",       "ADMUX",        
-	"ACSR",         "UBRRL",        "UCSRB",        "UCSRA",        
-	"UDR",          "SPCR",         "SPSR",         "SPDR",         
-	"PIND",         "DDRD",         "PORTD",        "PINC",         
-	"DDRC",         "PORTC",        "PINB",         "DDRB",         
-	"PORTB",        "reserved0x39", "reserved0x3a", "reserved0x3b", 
-	"EECR",         "EEDR",         "EEARL",        "EEARH",        
-	"UBRRH/UCSRC",  "WDTCR",        "ASSR",         "OCR2",         
-	"TCNT2",        "TCCR2",        "ICR1L",        "ICR1H",        
-	"OCR1BL",       "OCR1BH",       "OCR1AL",       "OCR1H",        
-	"TCNT1L",       "TCNT1H",       "TCCR1B",       "TCCR1A",       
-	"SFIOR",        "OSCCAL",       "TCNT0",        "TCCR0",        
-	"MCUCSR",       "MCUCR",        "TWCR",         "SPMCR",        
-	"TIFR",         "TIMSK",        "GIFR",         "GICR",         
-	"reserved0x5c", "SPL",          "SPH",          "SREG",         
+	"TWBR",         "TWSR",         "TWAR",         "TWDR",
+	"ADCL",         "ADCH",         "ADCSRA",       "ADMUX",
+	"ACSR",         "UBRRL",        "UCSRB",        "UCSRA",
+	"UDR",          "SPCR",         "SPSR",         "SPDR",
+	"PIND",         "DDRD",         "PORTD",        "PINC",
+	"DDRC",         "PORTC",        "PINB",         "DDRB",
+	"PORTB",        "reserved0x39", "reserved0x3a", "reserved0x3b",
+	"EECR",         "EEDR",         "EEARL",        "EEARH",
+	"UBRRH/UCSRC",  "WDTCR",        "ASSR",         "OCR2",
+	"TCNT2",        "TCCR2",        "ICR1L",        "ICR1H",
+	"OCR1BL",       "OCR1BH",       "OCR1AL",       "OCR1H",
+	"TCNT1L",       "TCNT1H",       "TCCR1B",       "TCCR1A",
+	"SFIOR",        "OSCCAL",       "TCNT0",        "TCCR0",
+	"MCUCSR",       "MCUCR",        "TWCR",         "SPMCR",
+	"TIFR",         "TIMSK",        "GIFR",         "GICR",
+	"reserved0x5c", "SPL",          "SPH",          "SREG",
 };
 
 }
@@ -169,8 +169,8 @@ inline static void store_bit_1(u8 &dest, unsigned int bit, unsigned int value)
 
 
 // This computes both the half-carry (bit3) and full carry (bit7)
-#define BORROWS		(~Rd&Rr)|(Rr&R)|(R&~Rd)
-#define CARRIES		((Rd&Rr)|(Rr&~R)|(~R&Rd))
+#define BORROWS		((~Rd & Rr) | (Rr &  R) | ( R & ~Rd))
+#define CARRIES		(( Rd & Rr) | (Rr & ~R) | (~R &  Rd))
 
 #define UPDATE_HC_SUB \
 	CH = BORROWS; \
@@ -183,10 +183,10 @@ inline static void store_bit_1(u8 &dest, unsigned int bit, unsigned int value)
 
 #define UPDATE_H		set_bit_1(SREG, SREG_H, (CARRIES & 0x8) >> 3)
 #define UPDATE_Z		set_bit_inv(SREG, SREG_Z, R)
-#define UPDATE_V_ADD	set_bit_1(SREG, SREG_V, (((Rd&Rr&~R)|(~Rd&~Rr&R)) & 0x80) >> 7)
-#define UPDATE_V_SUB	set_bit_1(SREG, SREG_V, (((Rd&~Rr&~R)|(~Rd&Rr&R)) & 0x80) >> 7)
+#define UPDATE_V_ADD	set_bit_1(SREG, SREG_V, (((Rd &  Rr & ~R) | (~Rd & ~Rr & R)) & 0x80) >> 7)
+#define UPDATE_V_SUB	set_bit_1(SREG, SREG_V, (((Rd & ~Rr & ~R) | (~Rd &  Rr & R)) & 0x80) >> 7)
 #define UPDATE_N		set_bit_1(SREG, SREG_N, (R & 0x80) >> 7)
-#define UPDATE_S		set_bit_1(SREG, SREG_S, BIT(SREG,SREG_N) ^ BIT(SREG,SREG_V))
+#define UPDATE_S		set_bit_1(SREG, SREG_S, BIT(SREG, SREG_N) ^ BIT(SREG, SREG_V))
 
 #define UPDATE_SVN_SUB	UPDATE_V_SUB; UPDATE_N; UPDATE_S
 #define UPDATE_SVN_ADD	UPDATE_V_ADD; UPDATE_N; UPDATE_S
@@ -200,34 +200,16 @@ inline static void store_bit_1(u8 &dest, unsigned int bit, unsigned int value)
 #define UPDATE_SVN_LOGICAL \
 	SREG |= ((0x7FU - (unsigned int)(R)) >> 8) & (SREG_SM | SREG_NM);
 
-#define UPDATE_CZ_MUL(x)		set_bit_1(SREG,SREG_C,(x & 0x8000) >> 15); set_bit_inv(SREG,SREG_Z,x)
+#define UPDATE_CZ_MUL(x)		set_bit_1(SREG, SREG_C, (x & 0x8000) >> 15); set_bit_inv(SREG, SREG_Z, x)
 
 // UPDATE_CLEAR_Z: Updates Z flag by clearing if result is nonzero. This
 // should be used if the previous Z flag state is meant to be preserved (such
 // as in CPC), so don't include Z in a clr_bits then.
 #define UPDATE_CLEAR_Z		(SREG &= ~(((0U - (unsigned int)(R)) >> 8) & SREG_ZM))
 
-#define SET_C		(SREG |= (1<<SREG_C))
+#define SET_C		(SREG |= (1 << SREG_C))
 
-#define ILLEGAL_OP fprintf(stderr,"invalid insn at address %x\n",currentPc); //shutdown(1);
-
-
-
-inline void avr8::write_io(u8 addr,u8 value)
-{
-	write_io_x(addr, value);
-}
-
-// Should not be called directly, use write_io instead (pixel output!)
-void avr8::write_io_x(u8 addr,u8 value)
-{
-	io[addr] = value;
-}
-
-u8 avr8::read_io(u8 addr)
-{
-	return io[addr];
-}
+#define ILLEGAL_OP fprintf(stderr, "invalid insn at address %x\n", currentPc); //shutdown(1);
 
 
 
@@ -254,8 +236,7 @@ inline void avr8::update_hardware_ins()
 {
 	// Process interrupts in order of priority
 
-	if(SREG & (1<<SREG_I))
-	{
+	if (SREG & (1 << SREG_I)) {
 		// Note (Jubatian):
 		// The SD card's SPI interrupt trigger was within the SPI
 		// handling part in update_hardware, however it belongs to
@@ -367,8 +348,7 @@ instructionList_t instructionList[] = {
 
 unsigned int avr8::exec()
 {
-
-	currentPc=pc;
+	currentPc = pc;
 	const instructionDecode_t insnDecoded = progmemDecoded[pc];
 	const u8  opNum  = insnDecoded.opNum;
 	const u8  arg1_8 = insnDecoded.arg1;
@@ -399,8 +379,7 @@ unsigned int avr8::exec()
 	// be buggy then (the behavior of things like having the stack over IO
 	// area...). This solution is at least fast for these instructions.
 
-	switch (opNum){
-
+	switch (opNum) {
 		case  1: // 0001 11rd dddd rrrr		(1) ADC Rd,Rr (ROL is ADC Rd,Rd)
 			Rd = r[arg1_8];
 			Rr = r[arg2_8];
@@ -422,16 +401,16 @@ unsigned int avr8::exec()
 		case  3: // 1001 0110 KKdd KKKK		(2) ADIW Rd+1:Rd,K   (16-bit add to upper four register pairs)
 			Rd = arg1_8;
 			Rr = arg2_8;
-			Rd16 = r[Rd] | (r[Rd+1]<<8);
+			Rd16 = r[Rd] | (r[Rd + 1] << 8);
 			R16 = Rd16 + Rr;
 			r[Rd] = (u8)R16;
-			r[Rd+1] = (u8)(R16>>8);
+			r[Rd+1] = (u8)(R16 >> 8);
 			clr_bits(SREG, SREG_CM | SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
-			set_bit_1(SREG,SREG_V,((~Rd16&R16)&0x8000) >> 15);
-			set_bit_1(SREG,SREG_N,(R16&0x8000) >> 15);
+			set_bit_1(SREG, SREG_V, ((~Rd16 & R16) & 0x8000) >> 15);
+			set_bit_1(SREG, SREG_N, (R16 & 0x8000) >> 15);
 			UPDATE_S;
-			set_bit_inv(SREG,SREG_Z,R16);
-			set_bit_1(SREG,SREG_C,((~R16&Rd16)&0x8000) >> 15);
+			set_bit_inv(SREG, SREG_Z, R16);
+			set_bit_1(SREG, SREG_C, ((~R16 & Rd16) & 0x8000) >> 15);
 			update_hardware();
 			break;
 
@@ -456,17 +435,17 @@ unsigned int avr8::exec()
 		case  6: // 1001 010d dddd 0101		(1) ASR Rd
 			Rd = r[arg1_8];
 			clr_bits(SREG, SREG_CM | SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
-			set_bit_1(SREG,SREG_C,Rd&1);
+			set_bit_1(SREG, SREG_C, Rd & 1);
 			r[arg1_8] = R = (Rd >> 1) | (Rd & 0x80);
 			UPDATE_N;
-			set_bit_1(SREG,SREG_V,(R>>7)^(Rd&1));
+			set_bit_1(SREG, SREG_V, (R >> 7) ^ (Rd & 1));
 			UPDATE_S;
 			UPDATE_Z;
 			break;
 
 		case  8: // 1111 100d dddd 0bbb		(1) BLD Rd,b
 			Rd = arg1_8;
-			store_bit_1(r[Rd],arg2_8,(SREG >> SREG_T) & 1U);
+			store_bit_1(r[Rd], arg2_8, (SREG >> SREG_T) & 1U);
 			break;
 
 		case  7: // 1001 0100 1sss 1000		(1) BCLR s (CLC, etc are aliases with sss implicit)
@@ -475,16 +454,14 @@ unsigned int avr8::exec()
 			break;
 
 		case  9: // 1111 01kk kkkk ksss		(1/2) BRBC s,k (BRCC, etc are aliases for this with sss implicit)
-			if (!(SREG & (1<<(arg1_8))))
-			{
+			if (!(SREG & (1 << arg1_8))) {
 				update_hardware();
 				pc += arg2_8;
 			}
 			break;
 
 		case  10: // 1111 00kk kkkk ksss		(1/2) BRBS s,k (same here)
-			if (SREG & (1<<(arg1_8)))
-			{
+			if (SREG & (1 << arg1_8)) {
 				update_hardware();
 				pc += arg2_8;
 			}
@@ -501,7 +478,7 @@ unsigned int avr8::exec()
 
 		case  13: // 1111 101d dddd 0bbb		(1) BST Rd,b
 			Rd = r[arg1_8];
-			store_bit_1(SREG,SREG_T,(Rd >> (arg2_8)) & 1U);
+			store_bit_1(SREG, SREG_T, (Rd >> arg2_8) & 1U);
 			break;
 
 		case  14: // 1001 010k kkkk 111k		(4) CALL k (next word is rest of address)
@@ -509,9 +486,9 @@ unsigned int avr8::exec()
 			update_hardware();
 			update_hardware();
 			update_hardware();
-			write_sram(SP,(pc*2+2));
+			write_sram(SP, (u8)(pc + 1));
 			DEC_SP;
-			write_sram(SP,(pc*2+2)>>8);
+			write_sram(SP, (u8)((pc + 1) >> 8));
 			DEC_SP;
 			pc = arg2_8;
 			break;
@@ -519,7 +496,7 @@ unsigned int avr8::exec()
 		case  15: // 1001 1000 AAAA Abbb		(2) CBI A,b
 			update_hardware();
 			Rd = arg1_8;
-			write_io(Rd, read_io(Rd) & ~(1<<(arg2_8)));
+			write_io(Rd, read_io(Rd) & ~(1 << arg2_8));
 			break;
 
 		case  16: // 1001 010d dddd 0000		(1) COM Rd
@@ -555,12 +532,10 @@ unsigned int avr8::exec()
 		case  20: // 0001 00rd dddd rrrr		(1/2/3) CPSE Rd,Rr
 			Rd = r[arg1_8];
 			Rr = r[arg2_8];
-			if (Rd == Rr)
-			{
+			if (Rd == Rr) {
 				unsigned int icc = get_insn_size(progmemDecoded[pc].opNum);
 				pc += icc;
-				while (icc != 0U)
-				{
+				while (icc != 0U) {
 					update_hardware();
 					icc --;
 				}
@@ -571,7 +546,7 @@ unsigned int avr8::exec()
 			R = --r[arg1_8];
 			clr_bits(SREG, SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
 			UPDATE_N;
-			set_bit_inv(SREG,SREG_V,(unsigned int)(R) - 0x7FU);
+			set_bit_inv(SREG, SREG_V, (unsigned int)(R) - 0x7FU);
 			UPDATE_S;
 			UPDATE_Z;
 			break;
@@ -584,7 +559,7 @@ unsigned int avr8::exec()
 			UPDATE_SVN_LOGICAL; UPDATE_Z;
 			r[arg1_8] = R;
 			break;
-		
+
 		case  23: // 0000 0011 0ddd 1rrr		(2) FMUL Rd,Rr (registers are in 16-23 range)
 			Rd = r[arg1_8];
 			Rr = r[arg2_8];
@@ -621,9 +596,9 @@ unsigned int avr8::exec()
 		case  26: // 1001 0101 0000 1001		(3) ICALL (call thru Z register)
 			update_hardware();
 			update_hardware();
-			write_sram(SP,u8(pc*2));
+			write_sram(SP, (u8)pc);
 			DEC_SP;
-			write_sram(SP,(pc*2)>>8);
+			write_sram(SP, (u8)(pc >> 8));
 			DEC_SP;
 			pc = Z;
 			break;
@@ -643,7 +618,7 @@ unsigned int avr8::exec()
 			R = ++r[arg1_8];
 			clr_bits(SREG, SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
 			UPDATE_N;
-			set_bit_inv(SREG,SREG_V,(unsigned int)(R) - 0x80U);
+			set_bit_inv(SREG, SREG_V, (unsigned int)(R) - 0x80U);
 			UPDATE_S;
 			UPDATE_Z;
 			break;
@@ -736,17 +711,16 @@ unsigned int avr8::exec()
 			update_hardware_fast();
 			update_hardware_fast();
 			r[arg1_8] = read_progmem(Z);
-			printf(" CPP: LPM Z+   Rd:%d   Z:0x%x   r[%d]:0x%x\n", arg1_8, Z, arg1_8, r[arg1_8]);
 			INC_Z;
 			break;
 
 		case  45: // 1001 010d dddd 0110		(1) LSR Rd
 			Rd = r[arg1_8];
 			clr_bits(SREG, SREG_CM | SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
-			set_bit_1(SREG,SREG_C,Rd&1);
+			set_bit_1(SREG, SREG_C, Rd & 1);
 			r[arg1_8] = R = (Rd >> 1);
 			UPDATE_N;
-			set_bit_1(SREG,SREG_V,Rd&1);
+			set_bit_1(SREG, SREG_V, Rd & 1);
 			UPDATE_S;
 			UPDATE_Z;
 			break;
@@ -759,7 +733,7 @@ unsigned int avr8::exec()
 			Rd = arg1_8;
 			Rr = arg2_8;
 			r[Rd] = r[Rr];
-			r[Rd+1] = r[Rr+1];
+			r[Rd+1] = r[Rr + 1];
 			break;
 
 		case  48: // 1001 11rd dddd rrrr		(2) MUL Rd,Rr
@@ -838,16 +812,16 @@ unsigned int avr8::exec()
 
 		case  57: // 1001 001d dddd 1111		(2) PUSH Rd
 			update_hardware();
-			write_sram(SP,r[arg1_8]);
+			write_sram(SP, r[arg1_8]);
 			DEC_SP;
 			break;
 
 		case  58: // 1101 kkkk kkkk kkkk		(3) RCALL k
 			update_hardware();
 			update_hardware();
-			write_sram(SP,(u8)(pc*2));
+			write_sram(SP, (u8)pc);
 			DEC_SP;
-			write_sram(SP,(pc*2)>>8);
+			write_sram(SP, (u8)(pc >> 8));
 			DEC_SP;
 			pc += arg2_8;
 			break;
@@ -860,7 +834,6 @@ unsigned int avr8::exec()
 			pc = read_sram(SP) << 8;
 			INC_SP;
 			pc |= read_sram(SP);
-			pc /= 2;
 			break;
 
 		case  60: // 1001 0101 0001 1000		(4) RETI
@@ -871,8 +844,7 @@ unsigned int avr8::exec()
 			pc = read_sram(SP) << 8;
 			INC_SP;
 			pc |= read_sram(SP);
-			pc /= 2;
-			SREG |= (1<<SREG_I);
+			SREG |= (1 << SREG_I);
 			//--interruptLevel;
 			break;
 
@@ -883,11 +855,11 @@ unsigned int avr8::exec()
 
 		case  62: // 1001 010d dddd 0111		(1) ROR Rd
 			Rd = r[arg1_8];
-			r[arg1_8] = R = (Rd >> 1) | ((SREG&1)<<7);
+			r[arg1_8] = R = (Rd >> 1) | ((SREG & 1) << 7);
 			clr_bits(SREG, SREG_CM | SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
-			set_bit_1(SREG,SREG_C,Rd&1);
+			set_bit_1(SREG, SREG_C, Rd & 1);
 			UPDATE_N;
-			set_bit_1(SREG,SREG_V,(R>>7)^(Rd&1));
+			set_bit_1(SREG, SREG_V, (R >> 7) ^ (Rd & 1));
 			UPDATE_S;
 			UPDATE_Z;
 			break;
@@ -913,17 +885,15 @@ unsigned int avr8::exec()
 		case  65: // 1001 1010 AAAA Abbb		(2) SBI A,b
 			update_hardware();
 			Rd = arg1_8;
-			write_io(Rd, read_io(Rd) | (1<<(arg2_8)));
+			write_io(Rd, read_io(Rd) | (1 << arg2_8));
 			break;
 
 		case  66: // 1001 1001 AAAA Abbb		(1/2/3) SBIC A,b
 			Rd = arg1_8;
-			if (!(read_io(Rd) & (1<<(arg2_8))))
-			{
+			if (!(read_io(Rd) & (1 << arg2_8))) {
 				unsigned int icc = get_insn_size(progmemDecoded[pc].opNum);
 				pc += icc;
-				while (icc != 0U)
-				{
+				while (icc != 0U) {
 					update_hardware();
 					icc --;
 				}
@@ -932,12 +902,10 @@ unsigned int avr8::exec()
 
 		case  67: // 1001 1011 AAAA Abbb		(1/2/3) SBIS A,b
 			Rd = arg1_8;
-			if (read_io(Rd) & (1<<(arg2_8)))
-			{
+			if (read_io(Rd) & (1 << arg2_8)) {
 				unsigned int icc = get_insn_size(progmemDecoded[pc].opNum);
 				pc += icc;
-				while (icc != 0U)
-				{
+				while (icc != 0U) {
 					update_hardware();
 					icc --;
 				}
@@ -947,27 +915,25 @@ unsigned int avr8::exec()
 		case  68: // 1001 0111 KKdd KKKK		(2) SBIW Rd+1:Rd,K
 			Rd = arg1_8;
 			Rr = arg2_8;
-			Rd16 = r[Rd] | (r[Rd+1]<<8);
+			Rd16 = r[Rd] | (r[Rd + 1] << 8);
 			R16 = Rd16 - Rr;
 			r[Rd] = (u8)R16;
-			r[Rd+1] = (u8)(R16>>8);
+			r[Rd+1] = (u8)(R16 >> 8);
 			clr_bits(SREG, SREG_CM | SREG_ZM | SREG_NM | SREG_VM | SREG_SM);
-			set_bit_1(SREG,SREG_V,((Rd16&~R16)&0x8000) >> 15);
-			set_bit_1(SREG,SREG_N,(R16&0x8000) >> 15);
+			set_bit_1(SREG, SREG_V, ((Rd16 & ~R16) & 0x8000) >> 15);
+			set_bit_1(SREG, SREG_N, (R16 & 0x8000) >> 15);
 			UPDATE_S;
-			set_bit_inv(SREG,SREG_Z,R16);
-			set_bit_1(SREG,SREG_C,((R16&~Rd16)&0x8000) >> 15);
+			set_bit_inv(SREG, SREG_Z, R16);
+			set_bit_1(SREG, SREG_C, ((R16 & ~Rd16) & 0x8000) >> 15);
 			update_hardware();
 			break;
 
 		case  69: // 1111 110r rrrr 0bbb		(1/2/3) SBRC Rr,b
 			Rd = r[arg1_8];
-			if (((Rd >> (arg2_8)) & 1U) == 0)
-			{
+			if (((Rd >> arg2_8) & 1U) == 0) {
 				unsigned int icc = get_insn_size(progmemDecoded[pc].opNum);
 				pc += icc;
-				while (icc != 0U)
-				{
+				while (icc != 0U) {
 					update_hardware();
 					icc --;
 				}
@@ -976,12 +942,10 @@ unsigned int avr8::exec()
 
 		case  70: // 1111 111r rrrr 0bbb		(1/2/3) SBRS Rr,b
 			Rd = r[arg1_8];
-			if (((Rd >> (arg2_8)) & 1U) == 1)
-			{
+			if (((Rd >> arg2_8) & 1U) == 1) {
 				unsigned int icc = get_insn_size(progmemDecoded[pc].opNum);
 				pc += icc;
-				while (icc != 0U)
-				{
+				while (icc != 0U) {
 					update_hardware();
 					icc --;
 				}
@@ -997,13 +961,12 @@ unsigned int avr8::exec()
 			update_hardware();
 			update_hardware(); // Cycle count undocumented?!?!?
 			update_hardware(); // (4 cycles emulated)
-			if (Z >= (int)(progSize/2))
-			{
+			if (Z >= (int)(flash_size / 2)) {
 				fprintf(stderr,"illegal write to progmem addr %x\n",Z);
 				//shutdown(1);
-			}else{
-				progmem[Z] = r0 | (r1<<8);
-				decodeFlash(Z-1);
+			} else {
+				progmem[Z] = r0 | (r1 << 8);
+				decodeFlash(Z - 1);
 				decodeFlash(Z);
 			}
 			break;
@@ -1011,35 +974,35 @@ unsigned int avr8::exec()
 		case  73: // 1001 001r rrrr 1110		(2) ST -X,Rr
 			update_hardware();
 			DEC_X;
-			write_sram_io(X,r[arg1_8]);
+			write_sram_io(X, r[arg1_8]);
 			break;
 
 		case  74: // 1001 001r rrrr 1010		(2) ST -Y,Rr
 			update_hardware();
 			DEC_Y;
-			write_sram_io(Y,r[arg1_8]);
+			write_sram_io(Y, r[arg1_8]);
 			break;
 
 		case  75: // 1001 001r rrrr 0010		(2) ST -Z,Rr
 			update_hardware();
 			DEC_Z;
-			write_sram_io(Z,r[arg1_8]);
+			write_sram_io(Z, r[arg1_8]);
 			break;
 
 		case  76: // 1001 001r rrrr 1100		(2) ST X,Rr
 			update_hardware();
-			write_sram_io(X,r[arg1_8]);
+			write_sram_io(X, r[arg1_8]);
 			break;
 
 		case  77: // 1001 001r rrrr 1101		(2) ST X+,Rr
 			update_hardware();
-			write_sram_io(X,r[arg1_8]);
+			write_sram_io(X, r[arg1_8]);
 			INC_X;
 			break;
 
 		case  78: // 1001 001r rrrr 1001		(2) ST Y+,Rr
 			update_hardware();
-			write_sram_io(Y,r[arg1_8]);
+			write_sram_io(Y, r[arg1_8]);
 			INC_Y;
 			break;
 
@@ -1052,7 +1015,7 @@ unsigned int avr8::exec()
 
 		case  80: // 1001 001r rrrr 0001		(2) ST Z+,Rr
 			update_hardware();
-			write_sram_io(Z,r[arg1_8]);
+			write_sram_io(Z, r[arg1_8]);
 			INC_Z;
 			break;
 
@@ -1065,7 +1028,7 @@ unsigned int avr8::exec()
 
 		case  82: // 1001 001d dddd 0000		(2) STS k,Rr (next word is rest of address)
 			update_hardware();
-			write_sram_io(arg2_8,r[arg1_8]);
+			write_sram_io(arg2_8, r[arg1_8]);
 			pc++;
 			break;
 
@@ -1110,15 +1073,15 @@ unsigned int avr8::exec()
 	}
 
 	// Process hardware for the last instruction cycle
-
 	update_hardware_fast();
 
 	// Run instruction precise emulation tasks
-
 	update_hardware_ins();
 
-	// Done, return cycles consumed during the processing of this instruction.
+	// Apply PC mask.
+	pc = pc & PC_mask;
 
+	// Done, return cycles consumed during the processing of this instruction.
 	return cycleCounter - startcy;
 }
 
@@ -1128,24 +1091,23 @@ u16 avr8::decodeArg(u16 flash, u16 argMask, u8 argNeg)
 	u16 decodeShift = 0x0001;
 	u16 arg = 0x0000;
 
-	while (argMaskShift != 0x4000){  //0x4000 is highest bit in argMask that can be set
-		if((argMaskShift & argMask) != 0){
-			if((argMaskShift & flash) != 0){
+	while (argMaskShift != 0x4000) {  //0x4000 is highest bit in argMask that can be set
+		if ((argMaskShift & argMask) != 0) {
+			if ((argMaskShift & flash) != 0)
 				arg = arg | decodeShift;
-			}
 			decodeShift = decodeShift << 1 ;
 		}
-		argMaskShift = argMaskShift<<1;
+		argMaskShift = argMaskShift << 1;
 	}
-	decodeShift = decodeShift >>1;
-	
-	if((argNeg == 1) && ((decodeShift & arg) != 0)) {
-		while(decodeShift != 0x8000){
+	decodeShift = decodeShift >> 1;
+
+	if ((argNeg == 1) && ((decodeShift & arg) != 0)) {
+		while (decodeShift != 0x8000) {
 			decodeShift = decodeShift << 1 ;
 			arg = arg | decodeShift;
 		}
 	}
-	
+
 	return(arg);
 }
 
@@ -1166,17 +1128,16 @@ void avr8::instructionDecode(u16 address)
 	thisInst.arg1  = 0;
 	thisInst.arg2  = 0;
 
-	while(instructionList[i].opNum != 0){
+	while (instructionList[i].opNum != 0) {
 		thisMask = ~(instructionList[i].arg1Mask | instructionList[i].arg2Mask);
 
-		if((rawFlash & thisMask) == instructionList[i].mask){
+		if ((rawFlash & thisMask) == instructionList[i].mask) {
 
 			arg1 = (decodeArg(rawFlash, instructionList[i].arg1Mask, instructionList[i].arg1Neg) * instructionList[i].arg1Mul) + instructionList[i].arg1Offset;
 			arg2 = (decodeArg(rawFlash, instructionList[i].arg2Mask, instructionList[i].arg2Neg) * instructionList[i].arg2Mul) + instructionList[i].arg2Offset;
 
-			if (instructionList[i].words == 2) { // the 2 word instructions have k16 as the 2nd word of total 32bit instruction
+			if (instructionList[i].words == 2) // the 2 word instructions have k16 as the 2nd word of total 32bit instruction
 				arg2 = progmem[address+1];
-			}
 
 			//fprintf(stdout, instructionList[i].opName, arg1, arg2);
 			//fprintf(stdout, "\n");
@@ -1184,8 +1145,8 @@ void avr8::instructionDecode(u16 address)
 			thisInst.opNum = instructionList[i].opNum;
 			thisInst.arg1  = arg1;
 			thisInst.arg2  = arg2;
-					
-			progmemDecoded[address] = thisInst;	
+
+			progmemDecoded[address] = thisInst;
 			return;
 		}
 		i++;
@@ -1195,44 +1156,59 @@ void avr8::instructionDecode(u16 address)
 
 void avr8::decodeFlash(void)
 {
-	for(u16 i = 0;  i < (progSize / 2); i++) {
+	for (u16 i = 0;  i < (flash_size / 2); i++)
 		decodeFlash(i);
-	}
 }
 
 void avr8::decodeFlash(u16 address)
 {
-	if (address < (progSize / 2)) {
+	if (address < (flash_size / 2))
 		instructionDecode(address);
-	}
 }
 
 void avr8::trigger_interrupt(unsigned int location)
 {
+	// clear interrupt flag
+	store_bit_1(SREG, SREG_I, 0);
 
-		// clear interrupt flag
-		store_bit_1(SREG,SREG_I,0);
+	// push current PC
+	write_sram(SP, (u8)pc);
+	DEC_SP;
+	write_sram(SP, (u8)(pc >> 8));
+	DEC_SP;
 
-		// push current PC
-		write_sram(SP,(u8)(pc*2));
-		DEC_SP;
-		write_sram(SP,(pc*2)>>8);
-		DEC_SP;
+	// jump to new location (which jumps to the real handler)
+	pc = location;
 
-		// jump to new location (which jumps to the real handler)
-		pc = location;
-
-		// bill the cycles consumed (3 cycles).
-		// Note  that there is an error in the Atmega644 datasheet where
-		// it specifies the IRQ cycles as 5.
-		// see: http://www.avrfreaks.net/forum/interrupt-timing-conundrum
-		update_hardware();
-		update_hardware();
-		update_hardware();
-
+	// bill the cycles consumed (3 cycles).
+	// Note  that there is an error in the Atmega644 datasheet where
+	// it specifies the IRQ cycles as 5.
+	// see: http://www.avrfreaks.net/forum/interrupt-timing-conundrum
+	update_hardware();
+	update_hardware();
+	update_hardware();
 }
 
 
+
+void avr8::InitMemory(int new_flash_size, int new_ext_io_size)
+{
+	// Initilize flash memory.
+	flash_size = new_flash_size;
+	progmem = new u16[flash_size];
+	progmemDecoded = new instructionDecode_t[flash_size / 2];
+	memset(progmem, 0, (flash_size / 2) * sizeof(progmem[0]));
+	memset(progmemDecoded, 0, (flash_size / 2) * sizeof(progmemDecoded[0]));
+	PC_mask = (flash_size / 2) - 1;
+
+	// Initilize Extended IO memory.
+	if (!new_ext_io_size)
+		return;
+
+	ext_io_size = new_ext_io_size;
+	ext_io = new u8[ext_io_size];
+	memset(ext_io, 0, ext_io_size * sizeof(ext_io[0]));
+}
 
 bool avr8::LoadStateFile(const char* path)
 {
@@ -1279,17 +1255,29 @@ bool avr8::LoadStateFile(const char* path)
 	// Read IO ports.
 	int io_b;
 	f >> str;		// `IO:'
-	for (unsigned int p = 0; p < ioSize / 16; ++p) {
+	for (unsigned int p = 0; p < MEGA_IO_SIZE / 16; ++p) {
 		for (int i = 0; i < 16; ++i) {
 			f >> std::hex >> io_b;
 			io[(p * 16) + i] = (u8)io_b;
 		}
 	}
 
+	// Read extended IO.
+	if (ext_io_size) {
+		int ext_io_b;
+		f >> str;
+		for (unsigned int p = 0; p < (unsigned)(ext_io_size / 16); ++p) {
+			for (int i = 0; i < 16; ++i) {
+				f >> std::hex >> ext_io_b;
+				ext_io[(p * 16) + i] = (u8)ext_io_b;
+			}
+		}
+	}
+
 	// Read RAM.
 	int ram_b;
 	f >> str;		// `RAM:'
-	for (unsigned int p = 0; p < sramSize / 16; ++p) {
+	for (unsigned int p = 0; p < MEGA_SRAM_SIZE / 16; ++p) {
 		for (int i = 0; i < 16; ++i) {
 			f >> std::hex >> ram_b;
 			sram[(p * 16) + i] = (u8)ram_b;
@@ -1301,36 +1289,36 @@ bool avr8::LoadStateFile(const char* path)
 void avr8::Print(std::ostream& o) const
 {
 	// Print cycles.
-	o << "Cycles   " << this->cycleCounter << std::endl;
+	o << "Cycles   " << cycleCounter << std::endl;
 	o << std::endl;
 
 	// Print working registers.
 	int num_regs = 16;
 	for (int i = 0; i < 16; ++i)
 		o << 'R' << std::dec << std::left << std::setw(2) << i
-			<< " 0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << int(this->r[i])
+			<< " 0x" << std::setfill('0') << std::setw(2) << std::right << std::hex << int(r[i])
 			<< "          R" << std::dec << (i + num_regs)
-			<< " 0x" << std::hex << std::setfill('0') << std::setw(2) << int(this->r[i + num_regs])
+			<< " 0x" << std::hex << std::setfill('0') << std::setw(2) << int(r[i + num_regs])
 			<< std::setfill(' ') << std::dec << std::endl;
 	o << std::endl;
 
-	const int x = (this->XH << 8) | this->XL;
+	const int x = (XH << 8) | XL;
 	o << "X 0x" << std::hex << std::setfill('0') << std::setw(4)
 		<< x << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->XL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->XH) << std::endl;
+		<< int(XL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
+		<< int(XH) << std::endl;
 
-	const int y = (this->YH << 8) | this->YL;
+	const int y = (YH << 8) | YL;
 	o << "Y 0x" << std::hex << std::setfill('0') << std::setw(4)
 		<< y << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->YL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->YH) << std::endl;
+		<< int(YL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
+		<< int(YH) << std::endl;
 
-	const int z = (this->ZH << 8) | this->ZL;
+	const int z = (ZH << 8) | ZL;
 	o << "Z 0x" << std::hex << std::setfill('0') << std::setw(4)
 		<< z << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->ZL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->ZH) << std::endl;
+		<< int(ZL) << ' ' << std::hex << std::setfill('0') << std::setw(2)
+		<< int(ZH) << std::endl;
 	o << std::dec << std::endl;
 
 	// Print program status.
@@ -1338,30 +1326,44 @@ void avr8::Print(std::ostream& o) const
 	for (int i = 0; i < 8; ++i)
 		sreg_str += SREG & (0x80 >> i) ? "ITHSVNZC"[i] : '-';
 	o << "SREG     0x" << std::hex << std::setfill('0') << std::setw(2)
-		<< int(this->SREG) << "   (" << sreg_str << ")" << std::endl;
-	o << "PC       0x" << std::hex << std::setfill('0') << std::setw(4) << this->pc * 2 << std::endl;
-	const int sp = (this->SPH << 8) | this->SPL;
+		<< int(SREG) << "   (" << sreg_str << ")" << std::endl;
+	o << "PC       0x" << std::hex << std::setfill('0') << std::setw(4) << (int)(pc * 2) << std::endl;
+	const int sp = (SPH << 8) | SPL;
 	o << "SP       0x" << std::hex << std::setfill('0') << std::setw(4) << sp << std::endl;
 	o << std::endl;
 
 	// Print IO.
 	unsigned int i = 0;
 	o << "IO:" << std::endl;
-	while (i < ioSize) {
+	while (i < MEGA_IO_SIZE) {
 		for (int j = 0; j < 16; ++j)
-			o << ' ' << (j == 8 ? "   " : "") << std::hex << std::setw(2) << std::setfill('0')
+			o << ' ' << (j == 8 ? "  " : "") << std::hex << std::setw(2) << std::setfill('0')
 				<< int(io[i + j]);
 		o << std::endl;
 		i += 16;
 	}
 	o << std::endl;
 
+	// Print extended IO.
+	if (ext_io_size) {
+		o << "ExtIO:" << std::endl;
+		i = 0;
+		while (i < (unsigned)ext_io_size) {
+			for (int j = 0; j < 16; ++j)
+				o << ' ' << (j == 8 ? "  " : "") << std::hex << std::setw(2) << std::setfill('0')
+					<< int(ext_io[i + j]);
+			o << std::endl;
+			i += 16;
+		}
+		o << std::endl;
+	}
+
 	// Print RAM.
 	o << "RAM:" << std::endl;
 	i = 0;
-	while (i < sramSize) {
+	while (i < MEGA_SRAM_SIZE) {
 		for (int j = 0; j < 16; ++j)
-			o << ' ' << (j == 8 ? "   " : "") << std::hex << std::setw(2) << std::setfill('0')
+			o << ' ' << (j == 8 ? "  " : "") << std::hex << std::setw(2) << std::setfill('0')
 				<< int(sram[i + j]);
 		o << std::endl;
 		i += 16;

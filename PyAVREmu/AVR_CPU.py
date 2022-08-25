@@ -6,21 +6,12 @@
 #* hand held console based on AVR microcontroller.                            *
 #******************************************************************************
 
-import os
-
-import ATmega8_regs
-import AVR_disassemble
-import draw_util
-
-
-
-#IS_PRINT_ASM = True
+# Debug settings
 IS_PRINT_ASM = False
-
-IS_TRACK_JUMPS  = True
-IS_LOG_READ_IO  = False
+IS_LOG_READ_IO = False
 IS_LOG_WRITE_IO = False
 IS_LOG_WRITE_RAM = False
+IS_OUT_OF_RANGE_EXCEPTION = False
 
 SREG_I = 7
 SREG_T = 6
@@ -33,28 +24,24 @@ SREG_C = 0
 
 SP_MASK = (1 << 11) - 1
 
-frame_num = 1
-PortD_Data = []
-OldPortD_Data = []
-
 
 
 def ClearSREG(cpu, flg):
     cpu.SREG &= ~(1 << flg)
     cpu.SREG &= 0xff
-    cpu.IO[ATmega8_regs.IO_NAMES.index('SREG')] = cpu.SREG
+    cpu.IO[cpu.IO_names.index('SREG')] = cpu.SREG
 
 
 def SetSREG(cpu, flg):
     cpu.SREG |= (1 << flg)
-    cpu.IO[ATmega8_regs.IO_NAMES.index('SREG')] = cpu.SREG
+    cpu.IO[cpu.IO_names.index('SREG')] = cpu.SREG
 
 
 def SetSREGValue(cpu, flg, bit_val):
     cpu.SREG &= ~(1 << flg)
     cpu.SREG &= 0xff
     cpu.SREG |= (bit_val << flg)
-    cpu.IO[ATmega8_regs.IO_NAMES.index('SREG')] = cpu.SREG
+    cpu.IO[cpu.IO_names.index('SREG')] = cpu.SREG
 
 
 def GetSREG(cpu, flg):
@@ -159,19 +146,19 @@ def UpdateZ(cpu, R):
 
 
 def PushPCToStack(cpu):
-    ret_addr = cpu.PC + 2
-    cpu.ret_addrs.append(ret_addr)
+    extra_word = 0 if cpu.is_PC_16_bits else 1
+    ret_addr = cpu.PC + extra_word
     if cpu.is_PC_16_bits:               # PC is 16 bits.
-        cpu.WriteRAM(cpu.SP, ret_addr & 0xff)
+        cpu.WriteDataSpace(cpu.SP, ret_addr & 0xff)
         cpu.SP -= 1
-        cpu.WriteRAM(cpu.SP, (ret_addr >> 8) & 0xff)
+        cpu.WriteDataSpace(cpu.SP, (ret_addr >> 8) & 0xff)
         cpu.SP -= 1
     else:                               # PC is 22 bits.
-        cpu.WriteRAM(cpu.SP, ret_addr & 0xff)
+        cpu.WriteDataSpace(cpu.SP, ret_addr & 0xff)
         cpu.SP -= 1
-        cpu.WriteRAM(cpu.SP, (ret_addr >> 8) & 0xff)
+        cpu.WriteDataSpace(cpu.SP, (ret_addr >> 8) & 0xff)
         cpu.SP -= 1
-        cpu.WriteRAM(cpu.SP, (ret_addr >> 16) & 0x3f)
+        cpu.WriteDataSpace(cpu.SP, (ret_addr >> 16) & 0x3f)
         cpu.SP -= 1
     cpu.WriteSP(cpu.SP)
 
@@ -179,27 +166,25 @@ def PushPCToStack(cpu):
 def PopPCFromStack(cpu):
     if cpu.is_PC_16_bits:
         cpu.SP += 1
-        h = cpu.ReadRAM(cpu.SP)
+        h = cpu.ReadDataSpace(cpu.SP)
         cpu.SP += 1
-        l = cpu.ReadRAM(cpu.SP)
+        l = cpu.ReadDataSpace(cpu.SP)
         ret_addr = (h << 8) | l
     else:
         cpu.SP += 1
-        p = cpu.ReadRAM(cpu.SP)
+        p = cpu.ReadDataSpace(cpu.SP)
         cpu.SP += 1
-        h = cpu.ReadRAM(cpu.SP)
+        h = cpu.ReadDataSpace(cpu.SP)
         cpu.SP += 1
-        l = cpu.ReadRAM(cpu.SP)
+        l = cpu.ReadDataSpace(cpu.SP)
         ret_addr = (m << 16) | (h << 8) | l
     cpu.PC = ret_addr
     cpu.WriteSP(cpu.SP)
-    del cpu.ret_addrs[-1]
 
 
-def IncPC(cpu, k=2):
+def IncPC(cpu, k=1):
     cpu.PC += k
-    if (cpu.PC & 1) != 0:
-        raise Exception('Error in PC: {}  0x{:04x}  {}!'.format(cpu.PC, cpu.PC, bin(cpu.PC)))
+    cpu.PC &= cpu.PC_mask
 
 
 def SetPC(cpu, K):
@@ -229,8 +214,6 @@ def ADC(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # ADD: Add without Carry
@@ -245,8 +228,6 @@ def ADD(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Add Immediate to Word
@@ -260,8 +241,7 @@ def ADIW(cpu, Rd, K):
     UpdateS(cpu)
     cpu.regs[Rd] = R & 0xff
     cpu.regs[Rd + 1] = (R >> 8) & 0xff
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # AND: Logical AND
@@ -274,8 +254,6 @@ def AND(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # ANDI: Logical AND with Immediate
@@ -288,13 +266,11 @@ def ANDI(cpu, Rd, K):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Arithmetic Shift Right
 def ASR(cpu, Rd):
-    b7 = (cpu.regs[rd] & (1 << 7)) == (1 << 7)
+    b7 = (cpu.regs[Rd] & (1 << 7)) == (1 << 7)
     c = cpu.regs[Rd] & 1
     R = (b7 << 7) | (cpu.regs[Rd] >> 1)
     SetSREGValue(cpu, SREG_C, c)
@@ -302,9 +278,7 @@ def ASR(cpu, Rd):
     UpdateZ(cpu, R)
     SetSREGValue(cpu, SREG_V, c ^ b7)
     UpdateS(cpu)
-    cpu.regs[rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
+    cpu.regs[Rd] = R
 
 
 # BCLR: Bit Clear in SREG
@@ -319,8 +293,6 @@ def ASR(cpu, Rd):
 # CLZ: Clear Zero Flag
 def BCLR(cpu, s):
     ClearSREG(cpu, s)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Bit Load from the T Flag in SREG to a Bit in Register
@@ -328,8 +300,6 @@ def BLD(cpu, Rd, b):
     t = GetSREG(cpu, SREG_T)
     cpu.regs[Rd] &= ~(1 << b)
     cpu.regs[Rd] |= (t << b)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # BRBC: Branch if Bit in SREG is Cleared
@@ -346,10 +316,7 @@ def BLD(cpu, Rd, b):
 def BRBC(cpu, s, k):
     b = GetSREG(cpu, s)
     if not b:
-        IncPC(cpu, k + 2)
-        IncCycles(cpu, 2)
-    else:
-        IncPC(cpu)
+        IncPC(cpu, k)
         IncCycles(cpu)
 
 
@@ -367,17 +334,14 @@ def BRBC(cpu, s, k):
 def BRBS(cpu, s, k):
     b = GetSREG(cpu, s)
     if b:
-        IncPC(cpu, k + 2)
-        IncCycles(cpu, 2)
-    else:
-        IncPC(cpu)
+        IncPC(cpu, k)
         IncCycles(cpu)
 
 
 # Break
 def BREAK(cpu):
-    IncPC(cpu)
-    IncCycles(cpu)
+    # TODO: Implement debugging break instruction.
+    pass
 
 
 # BSET: Bit Set in SREG
@@ -392,16 +356,12 @@ def BREAK(cpu):
 # SEZ: Set Zero Flag
 def BSET(cpu, s):
     SetSREG(cpu, s)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Bit Store from Bit in Register to T Flag in SREG
 def BST(cpu, Rd, b):
     Rdb = (cpu.regs[Rd] & (1 << b)) == (1 << b)
     SetSREGValue(cpu, SREG_T, Rdb)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Long Call to a Subroutine
@@ -414,8 +374,7 @@ def CALL(cpu, K):
 # Clear Bit in I/O Register
 def CBI(cpu, A, b):
     cpu.WriteIO_ClearBit(A, b)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # One's Complement
@@ -427,8 +386,6 @@ def COM(cpu, Rd):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Compare
@@ -440,8 +397,6 @@ def CP(cpu, Rd, Rr):
     UpdateN(cpu, R)
     UpdateZ(cpu, R)
     UpdateS(cpu)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Comare with Carry
@@ -455,8 +410,6 @@ def CPC(cpu, Rd, Rr):
     z = (R == 0) & GetSREG(cpu, SREG_Z)
     SetSREGValue(cpu, SREG_Z, z)
     UpdateS(cpu)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Compare with Immediate
@@ -468,16 +421,12 @@ def CPI(cpu, Rd, K):
     UpdateN(cpu, R)
     UpdateZ(cpu, R)
     UpdateS(cpu)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Compare Skip if Equal
 def CPSE(cpu, Rd, Rr):
     if cpu.regs[Rd] == cpu.regs[Rr]:
         cpu.is_next_skip = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Decrement
@@ -489,8 +438,6 @@ def DEC(cpu, Rd):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Extended Indirect Call to Subroutine
@@ -528,8 +475,6 @@ def EOR(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Fractional Multiply Unsiged
@@ -563,8 +508,6 @@ def IJMP(cpu):
 # Load an I/O Location to Register
 def IN(cpu, A, Rd):
     cpu.regs[Rd] = cpu.ReadIO(A)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Increment
@@ -575,52 +518,45 @@ def INC(cpu, Rd):
     UpdateN(cpu, R)
     UpdateZ(cpu, R)
     UpdateS(cpu)
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 def JMP(cpu, K):
-    cpu.PC = K
-    IncCycles(cpu, 3)
+    SetPC(cpu, K)
+    IncCycles(cpu, 2)
 
 
 # Load Indirect from Data Space to Register using Index X (Unchanged)
 def LD_X(cpu, Rd):
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetX())
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetX())
+    IncCycles(cpu)
 
 
 # Load Indirect from Data Space to Register using Index X (Post Incremented)
 def LD_X_Plus(cpu, Rd):
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetX())
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetX())
     cpu.SetX(cpu.GetX() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Load Indirect from Data Space to Register using Index X (Pre Decremented)
 def LD_Minus_X(cpu, Rd):
     cpu.SetX(cpu.GetX() - 1)
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetX())
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetX())
+    IncCycles(cpu)
 
 
 # Load Indirect from Data Space to Register using Index Y (Post Incremented)
 def LD_Y_Plus(cpu, Rd):
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetY())
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetY())
     cpu.SetY(cpu.GetY() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Load Indirect from Data Space to Register using Index Y (Pre Decremented)
 def LD_Minus_Y(cpu, Rd):
     cpu.SetY(cpu.GetY() - 1)
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetY())
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetY())
+    IncCycles(cpu)
 
 
 # Load Indirect from Data Space to Register using Index Y (Y:Unchanged, q:Displacement)
@@ -628,25 +564,22 @@ def LD_Minus_Y(cpu, Rd):
 # LD    Rd, Y
 # LDD   Rd, Y+q
 def LDD_Y_q(cpu, Rd, q):
-    cpu.regs[Rd] = cpu.ReadRAM((cpu.GetY() + q)) & 0xff
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace((cpu.GetY() + q)) & 0xff
+    IncCycles(cpu)
 
 
 # Load Indirect From Data Space to Register using Index Z (Post Incremented)
 def LD_Z_Plus(cpu, Rd):
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetZ())
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetZ())
     cpu.SetZ(cpu.GetZ() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Load Indirect From Data Space to Register using Index Z (Pre Decremented)
 def LD_Minus_Z(cpu, Rd):
     cpu.SetZ(cpu.GetZ() - 1)
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.GetZ())
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.GetZ())
+    IncCycles(cpu)
 
 
 # Load Indirect From Data Space to Register using Index Z (Z:Unchanged, q:Displacement)
@@ -654,9 +587,8 @@ def LD_Minus_Z(cpu, Rd):
 # LD    Rd, Z
 # LDD   Rd, Z+q
 def LDD_Z_q(cpu, Rd, q):
-    cpu.regs[Rd] = cpu.ReadRAM((cpu.GetZ() + q))
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace((cpu.GetZ() + q))
+    IncCycles(cpu)
 
 
 # LDI: Load Immediate
@@ -664,37 +596,32 @@ def LDD_Z_q(cpu, Rd, q):
 # SER: Set all Bits in Register
 def LDI(cpu, Rd, K):
     cpu.regs[Rd] = K
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Load Direct from Data Space
 def LDS(cpu, Rd, K):
-    cpu.regs[Rd] = cpu.ReadRAM(K)
-    IncPC(cpu, 4)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(K)
+    IncPC(cpu)
+    IncCycles(cpu)
 
 
 # Load Program Memory, R0 impled (Z:Unchanged)
 def LPM(cpu, hex_fmt):
     cpu.regs[0] = ReadProgMem(hex_fmt, cpu.GetZ())
-    IncPC(cpu)
-    IncCycles(cpu, 3)
+    IncCycles(cpu, 2)
 
 
 # Load Program Memory (Z:Unchanged)
 def LPM_Z(cpu, hex_fmt, Rd):
     cpu.regs[Rd] = ReadProgMem(hex_fmt, cpu.GetZ())
-    IncPC(cpu)
-    IncCycles(cpu, 3)
+    IncCycles(cpu, 2)
 
 
 # Load Program Memory (Z:Post Increment)
 def LPM_Z_Plus(cpu, hex_fmt, Rd):
     cpu.regs[Rd] = ReadProgMem(hex_fmt, cpu.GetZ())
     cpu.SetZ(cpu.GetZ() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 3)
+    IncCycles(cpu, 2)
 
 
 # Logical Shift Right
@@ -708,36 +635,29 @@ def LSR(cpu, Rd):
     SetSREGValue(cpu, SREG_V, n ^ c)    # V
     UpdateS(cpu)                        # S
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Copy Register
 def MOV(cpu, Rd, Rr):
     cpu.regs[Rd] = cpu.regs[Rr]
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Copy Register Word
 def MOVW(cpu, Rd, Rr):
     cpu.regs[Rd] = cpu.regs[Rr]
     cpu.regs[Rd + 1] = cpu.regs[Rr + 1]
-    IncPC(cpu)
-    IncCycles(cpu, 1)
 
 
 # Multiply Unsigned
 def MUL(cpu, Rd, Rr):
-    raise NotImplementedError("MUL not implemented!")
-    #R = cpu.regs[Rd] * cpu.regs[Rr]
-    #c = (R & (1 << 15)) == (1 << 15)
-    #SetSREGValue(cpu, SREG_C, c)
-    #UpdateZ(cpu, R)
-    #cpu.regs[0] = R & 0xff
-    #cpu.regs[1] = (R >> 8) & 0xff
-    #IncPC(cpu)
-    #IncCycles(cpu, 2)
+    #raise NotImplementedError("MUL not implemented!")
+    R = cpu.regs[Rd] * cpu.regs[Rr]
+    c = (R & 0x10000) == 0x10000
+    SetSREGValue(cpu, SREG_C, c)
+    UpdateZ(cpu, R)
+    cpu.regs[0] = R & 0xff
+    cpu.regs[1] = (R >> 8) & 0xff
+    IncCycles(cpu)
 
 
 # Multiply Signed
@@ -763,14 +683,11 @@ def NEG(cpu, Rd):
     SetSREGValue(cpu, SREG_C, c)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # No Operation
 def NOP(cpu):
-    IncPC(cpu)
-    IncCycles(cpu)
+    pass
 
 
 # Logical OR
@@ -781,8 +698,6 @@ def OR(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # ORI: Logical OR with Immediate
@@ -795,47 +710,40 @@ def ORI(cpu, Rd, K):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Store Register to I/O Location
 def OUT(cpu, A, Rr):
     cpu.WriteIO(A, cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu)
-
 
 
 # Pop Register from Stack
 def POP(cpu, Rd):
     cpu.WriteSP(cpu.SP + 1)
-    cpu.regs[Rd] = cpu.ReadRAM(cpu.SP)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.regs[Rd] = cpu.ReadDataSpace(cpu.SP)
+    IncCycles(cpu)
 
 
 # Push Register on Stack
 def PUSH(cpu, Rr):
-    cpu.WriteRAM(cpu.SP, cpu.regs[Rr])
+    cpu.WriteDataSpace(cpu.SP, cpu.regs[Rr])
     cpu.WriteSP(cpu.SP - 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Relative Call to Subroutine
 def RCALL(cpu, k):
     PushPCToStack(cpu)
-    IncPC(cpu, k + 2)
+    IncPC(cpu, k)
     off_bits = 0 + (cpu.is_PC_16_bits == False)
-    IncCycles(cpu, 3 + off_bits)
+    IncCycles(cpu, 2 + off_bits)
 
 
 # Return from Subroutine
 def RET(cpu):
     PopPCFromStack(cpu)
     off_bits = 0 + (cpu.is_PC_16_bits == False)
-    IncCycles(cpu, 4 + off_bits)
+    IncCycles(cpu, 3 + off_bits)
 
 
 # Return from Interrupt
@@ -846,8 +754,8 @@ def RETI(cpu):
 
 # Relative Jump
 def RJMP(cpu, k):
-    IncPC(cpu, k + 2)
-    IncCycles(cpu, 2)
+    IncPC(cpu, k)
+    IncCycles(cpu)
 
 
 # Rotate Right through Carry
@@ -864,8 +772,6 @@ def ROR(cpu, Rd):
     SetSREGValue(cpu, SREG_V, n ^ c_new)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Subtract with Carry
@@ -880,8 +786,6 @@ def SBC(cpu, Rd, Rr):
     SetSREGValue(cpu, SREG_Z, z)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Subtract Immediate with Carry
@@ -896,15 +800,12 @@ def SBCI(cpu, Rd, K):
     SetSREGValue(cpu, SREG_Z, z)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Set Bit in I/O Register
 def SBI(cpu, A, b):
     cpu.WriteIO_SetBit(A, b)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Skip if Bit in I/O Register Cleared
@@ -912,8 +813,6 @@ def SBIC(cpu, A, b):
     io_bit = cpu.ReadIOBit(A, b)
     if not io_bit:
         cpu.is_next_skip = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Skip if Bit in I/O Register is Set
@@ -921,13 +820,12 @@ def SBIS(cpu, A, b):
     io_bit = cpu.ReadIOBit(A, b)
     if io_bit:
         cpu.is_next_skip = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Subtract Immediate from Word
 def SBIW(cpu, Rd, K):
-    R = (((cpu.regs[Rd + 1] << 8) | cpu.regs[Rd]) - K) & 0xffff
+    P = (cpu.regs[Rd + 1] << 8) | cpu.regs[Rd]
+    R = (P - K) & 0xffff
     Pd15 = (cpu.regs[Rd + 1] & 0x80) == 0x80
     R15 = (R & 0x8000) == 0x8000
     SetSREGValue(cpu, SREG_V, Pd15 & ~R15)
@@ -937,8 +835,7 @@ def SBIW(cpu, Rd, K):
     UpdateS(cpu)
     cpu.regs[Rd]     = R & 0xff
     cpu.regs[Rd + 1] = (R >> 8) & 0xff
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Skip if Bit in Register is Cleared
@@ -946,8 +843,6 @@ def SBRC(cpu, Rr, b):
     b_val = (cpu.regs[Rr] & (1 << b))
     if not b_val:
         cpu.is_next_skip = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Skip if Bit in Register is Set
@@ -955,15 +850,11 @@ def SBRS(cpu, Rr, b):
     b_val = (cpu.regs[Rr] & (1 << b)) == (1 << b)
     if b_val:
         cpu.is_next_skip = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Sleep
 def SLEEP(cpu):
     self.is_sleep = True
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Store Program Memory
@@ -973,41 +864,36 @@ def SPM(cpu):
 
 # Store Indirect From Register to Data Space using Index X (Unchanged)
 def ST_X(cpu, Rr):
-    cpu.WriteRAM(cpu.GetX(), cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetX(), cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index X (Post Increment)
 def ST_X_Plus(cpu, Rr):
-    cpu.WriteRAM(cpu.GetX(), cpu.regs[Rr])
+    cpu.WriteDataSpace(cpu.GetX(), cpu.regs[Rr])
     cpu.SetX(cpu.GetX() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index X (Pre Decremented)
 def ST_Minus_X(cpu, Rr):
     cpu.SetX(cpu.GetX() - 1)
-    cpu.WriteRAM(cpu.GetX(), cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetX(), cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Y (Post Increment)
 def ST_Y_Plus(cpu, Rr):
-    cpu.WriteRAM(cpu.GetY(), cpu.regs[Rr])
+    cpu.WriteDataSpace(cpu.GetY(), cpu.regs[Rr])
     cpu.SetY(cpu.GetY() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Y (Pre Decremented)
 def ST_Minus_Y(cpu, Rr):
     cpu.SetY(cpu.GetY() - 1)
-    cpu.WriteRAM(cpu.GetY(), cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetY(), cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Y (Y:Unchanged, q:Displacement)
@@ -1015,25 +901,22 @@ def ST_Minus_Y(cpu, Rr):
 # ST    Y, Rd
 # STD   Y+q, Rd
 def STD_Y_q(cpu, Rr, q):
-    cpu.WriteRAM(cpu.GetY() + q, cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetY() + q, cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Z (Post Incremented)
 def ST_Z_Plus(cpu, Rr):
-    cpu.WriteRAM(cpu.GetZ(), cpu.regs[Rr])
+    cpu.WriteDataSpace(cpu.GetZ(), cpu.regs[Rr])
     cpu.SetZ(cpu.GetZ() + 1)
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Z (Pre Decremented)
 def ST_Minus_Z(cpu, Rr):
     cpu.SetZ(cpu.GetZ() - 1)
-    cpu.WriteRAM(cpu.GetZ(), cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetZ(), cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Indirect From Register to Data Space using Index Z (Z:Unchanged, q:Displacement)
@@ -1041,16 +924,15 @@ def ST_Minus_Z(cpu, Rr):
 # ST    Z, Rd
 # STD   Z+q, Rd
 def STD_Z_q(cpu, Rr, q):
-    cpu.WriteRAM(cpu.GetZ() + q, cpu.regs[Rr])
-    IncPC(cpu)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(cpu.GetZ() + q, cpu.regs[Rr])
+    IncCycles(cpu)
 
 
 # Store Direct to Data Space
 def STS(cpu, Rr, K):
-    cpu.WriteRAM(K, cpu.regs[Rr])
-    IncPC(cpu, 4)
-    IncCycles(cpu, 2)
+    cpu.WriteDataSpace(K, cpu.regs[Rr])
+    IncPC(cpu)
+    IncCycles(cpu)
 
 
 # Subtract without Carry
@@ -1063,8 +945,6 @@ def SUB(cpu, Rd, Rr):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Subtract Immediate
@@ -1077,8 +957,6 @@ def SUBI(cpu, Rd, K):
     UpdateZ(cpu, R)
     UpdateS(cpu)
     cpu.regs[Rd] = R
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Swap Nibbles
@@ -1086,143 +964,216 @@ def SWAP(cpu, Rd):
     hi = (cpu.regs[Rd] >> 4) & 0x0f
     lo = cpu.regs[Rd] & 0x0f
     cpu.regs[Rd] = (lo << 4) | hi
-    IncPC(cpu)
-    IncCycles(cpu)
 
 
 # Watchdog Rest
 def WDR(cpu):
     # TODO: Implement the watchdog reset operation!
-    IncPC(cpu)
-    IncCycles(cpu)
+    pass
 
 
+
+ABS_OPRDS = [ 'b', 'q', 's', 'r', 'd' ]
 
 INSTRUCTIONS = [
-    ( 'ADC\tR{d}, R{r}',    '0001 11rd dddd rrrr',                      ADC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'ADD\tR{d}, R{r}',    '0000 11rd dddd rrrr',                      ADD,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'ADIW\tR{p}, {K}',    '1001 0110 KKpp KKKK',                      ADIW,           ('p', 'K') ),   # p \in {24,26,28,30},  0 <= K <= 63
-    ( 'AND\tR{d}, R{r}',    '0010 00rd dddd rrrr',                      AND,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'ANDI\tR{h}, {K}',    '0111 KKKK hhhh KKKK',                      ANDI,           ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'ASR\tR{d}',          '1001 010d dddd 0101',                      ASR,            ('d',)     ),   # 0 <= d <= 31
-    ( 'BCLR\t{s}',          '1001 0100 1sss 1000',                      BCLR,           ('s',)     ),   # 0 <= s <= 7
-    ( 'BLD\tR{d}, {b}',     '1111 100d dddd 0bbb',                      BLD,            ('d', 'b') ),   # 0 <= d <= 31,         0 <= b <= 7
-    ( 'BRBC\t{s}, {k}',     '1111 01kk kkkk ksss',                      BRBC,           ('s', 'k') ),   # 0 <= s <= 7,          -64 <= k <= +63
-    ( 'BRBS\t{s}, {k}',     '1111 00kk kkkk ksss',                      BRBS,           ('s', 'k') ),   # 0 <= s <= 7,          -64 <= k <= +63
-    ( 'BREAK',              '1001 0101 1001 1000',                      BREAK,          ()         ),
-    ( 'BSET\t{s}',          '1001 0100 0sss 1000',                      BSET,           ('s',)     ),   # 0 <= s <= 7
-    ( 'BST\tR{d}, {b}',     '1111 101d dddd 0bbb',                      BST,            ('d', 'b') ),   # 0 <= d <= 31,         0 <= b <= 7
-    ( 'CALL\t{K}',          '1001 010K KKKK 111K KKKK KKKK KKKK KKKK',  CALL,           ('K',)     ),   # 0 <= K < 64K, 0 <= K < 4M
-    ( 'CBI\t{A}, {b}',      '1001 1000 AAAA Abbb',                      CBI,            ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
-    ( 'COM\tR{d}',          '1001 010d dddd 0000',                      COM,            ('d',)     ),   # 0 <= d <= 31
-    ( 'CP\tR{d}, R{r}',     '0001 01rd dddd rrrr',                      CP,             ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'CPC\tR{d}, R{r}',    '0000 01rd dddd rrrr',                      CPC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'CPI\tR{h}, {K}',     '0011 KKKK hhhh KKKK',                      CPI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'CPSE\tR{d}, R{r}',   '0001 00rd dddd rrrr',                      CPSE,           ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'DEC\tR{d}',          '1001 010d dddd 1010',                      DEC,            ('d',)     ),   # 0 <= d <= 31
-    ( 'EICALL',             '1001 0101 0001 1001',                      EICALL,         ()         ),
-    ( 'EIJMP',              '1001 0100 0001 1001',                      EIJMP,          ()         ),
-    ( 'ELPM',               '1001 0101 1101 1000',                      ELPM,           ()         ),
-    ( 'ELPM\tR{d}, Z',      '1001 000d dddd 0110',                      ELPM_Z,         ('d')      ),   # 0 <= d <= 31
-    ( 'ELPM\tR{d}, Z+',     '1001 000d dddd 0111',                      ELPM_Z_Plus,    ('d')      ),   # 0 <= d <= 31
-    ( 'EOR\tR{d}, R{r}',    '0010 01rd dddd rrrr',                      EOR,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'FMUL\tR{h}, R{H}',   '0000 0011 0hhh 1HHH',                      FMUL,           ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
-    ( 'FMULS\tR{h}, R{H}',  '0000 0011 1hhh 0HHH',                      FMULS,          ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
-    ( 'FMULSU\tR{h}, R{H}', '0000 0011 1hhh 1HHH',                      FMULSU,         ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
-    ( 'ICALL',              '1001 0101 0000 1001',                      ICALL,          ()         ),
-    ( 'IJMP',               '1001 0100 0000 1001',                      IJMP,           ()         ),
-    ( 'IN\tR{d}, ${A}',     '1011 0AAd dddd AAAA',                      IN,             ('A', 'd') ),   # 0 <= d <= 31,         0 <= A <= 63
-    ( 'INC\tR{d}',          '1001 010d dddd 0011',                      INC,            ('d',)     ),   # 0 <= d <= 31
-    ( 'JMP\t{K}',           '1001 010K KKKK 110K KKKK KKKK KKKK KKKK',  JMP,            ('K',)     ),   # 0 <= K < 4M
-    ( 'LD\tR{d}, X',        '1001 000d dddd 1100',                      LD_X,           ('d',)     ),   # 0 <= d <= 31
-    ( 'LD\tR{d}, X+',       '1001 000d dddd 1101',                      LD_X_Plus,      ('d',)     ),   # 0 <= d <= 31
-    ( 'LD\tR{d}, -X',       '1001 000d dddd 1110',                      LD_Minus_X,     ('d',)     ),   # 0 <= d <= 31
-    ( 'LD\tR{d}, Y+',       '1001 000d dddd 1001',                      LD_Y_Plus,      ('d',)     ),   # 0 <= d <= 31
-    ( 'LD\tR{d}, -Y',       '1001 000d dddd 1010',                      LD_Minus_Y,     ('d',)     ),   # 0 <= d <= 31
-    ( 'LDD\tR{d}, Y+q',     '10q0 qq0d dddd 1qqq',                      LDD_Y_q,        ('d',)     ),   # 0 <= d <= 31,         0 <= q <= 63
-    ( 'LD\tR{d}, Z+',       '1001 000d dddd 0001',                      LD_Z_Plus,      ('d',)     ),   # 0 <= d <= 31
-    ( 'LD\tR{d}, -Z',       '1001 000d dddd 0010',                      LD_Minus_Z,     ('d',)     ),   # 0 <= d <= 31
-    ( 'LDD\tR{d}, Z+q',     '10q0 qq0d dddd 0qqq',                      LDD_Z_q,        ('d', 'q') ),   # 0 <= d <= 31,         0 <= q <= 63
-    ( 'LDI\tR{h}, {K}',     '1110 KKKK hhhh KKKK',                      LDI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'LDS\tR{r}, {K}',     '1001 000r rrrr 0000 KKKK KKKK KKKK KKKK',  LDS,            ('r', 'K') ),   # 0 <= d <= 31, 0 <= K <= 65535
-    ( 'LPM',                '1001 0101 1100 1000',                      LPM,            ('F',)     ),   # R0 implied
-    ( 'LPM\tR{d}, Z',       '1001 000d dddd 0100',                      LPM_Z,          ('F', 'd') ),   # 0 <= d <= 31
-    ( 'LPM\tR{d}, Z+',      '1001 000d dddd 0101',                      LPM_Z_Plus,     ('F', 'd') ),   # 0 <= d <= 31
-    ( 'LSR\tR{d}',          '1001 010d dddd 0110',                      LSR,            ('d')      ),   # 0 <= d <= 31
-    ( 'MOV\tR{d}, R{r}',    '0010 11rd dddd rrrr',                      MOV,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'MOVW\tR{p}, R{P}',   '0000 0001 pppp PPPP',                      MOVW,           ('p', 'P') ),   # p \in {0,2,...,30},   P \in {0,2,...,30}
-    ( 'MUL\tR{d}, R{r}',    '1001 11rd dddd rrrr',                      MUL,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'MULS\tR{h}, R{H}',   '0000 0010 hhhh HHHH',                      MULS,           ('h', 'H') ),   # 16 <= h <= 31,        16 <= H <= 31
-    ( 'MULSU\tR{h}, R{H}',  '0000 0011 0hhh 0HHH',                      MULSU,          ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
-    ( 'NEG\tR{d}',          '1001 010d dddd 0001',                      NEG,            ('d',)     ),   # 0 <= d <= 31
-    ( 'NOP',                '0000 0000 0000 0000',                      NOP,            ()         ),
-    ( 'OR\tR{d}, R{r}',     '0010 10rd dddd rrrr',                      OR,             ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'ORI\tR{h}, {K}',     '0110 KKKK hhhh KKKK',                      ORI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'OUT\t${A}, R{r}',    '1011 1AAr rrrr AAAA',                      OUT,            ('A', 'r') ),   # 0 <= r <= 31,         0 <= A <= 63
-    ( 'POP\tR{d}',          '1001 000d dddd 1111',                      POP,            ('d',)     ),   # 0 <= d <= 31
-    ( 'PUSH\tR{r}',         '1001 001r rrrr 1111',                      PUSH,           ('r',)     ),   # 0 <= r <= 31
-    ( 'RCALL\t.{k:+}',      '1101 kkkk kkkk kkkk',                      RCALL,          ('k',)     ),   # -2K <= k < 2K
-    ( 'RET',                '1001 0101 0000 1000',                      RET,            ()         ),
-    ( 'RETI',               '1001 0101 0001 1000',                      RETI,           ()         ),
-    ( 'RJMP\t.{k:+}',       '1100 kkkk kkkk kkkk',                      RJMP,           ('k',)     ),   # -2K <= k <= 2K
-    ( 'ROR\tR{d}',          '1001 010d dddd 0111',                      ROR,            ('d',)     ),   # 0 <= d <= 31
-    ( 'SBC\tR{d}, R{r}',    '0000 10rd dddd rrrr',                      SBC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'SBCI\tR{h}, {K}',    '0100 KKKK hhhh KKKK',                      SBCI,           ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'SBI\t{A}, {b}',      '1001 1010 AAAA Abbb',                      SBI,            ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
-    ( 'SBIC\t{A}, {b}',     '1001 1001 AAAA Abbb',                      SBIC,           ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
-    ( 'SBIS\t{A}, {b}',     '1001 1011 AAAA Abbb',                      SBIS,           ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
-    ( 'SBIW\tR{p}, {K}',    '1001 0111 KKpp KKKK',                      SBIW,           ('p', 'K') ),   # p \in {24,26,28,30},  0 <= K <= 63
-    ( 'SBRC\tR{r}, {b}',    '1111 110r rrrr 0bbb',                      SBRC,           ('r', 'b') ),   # 0 <= r <= 31,         0 <= b <= 7
-    ( 'SBRS\tR{r}, {b}',    '1111 111r rrrr 0bbb',                      SBRS,           ('r', 'b') ),   # 0 <= r <= 31,         0 <= b <= 7
-    ( 'SLEEP',              '1001 0101 1000 1000',                      SLEEP,          ()         ),
-    ( 'SPM',                '1001 0101 1110 1000',                      SPM,            ()         ),
-    ( 'ST\tX, R{r}',        '1001 001r rrrr 1100',                      ST_X,           ('r',)     ),   # 0 <= r <= 31
-    ( 'ST\tX+, R{r}',       '1001 001r rrrr 1101',                      ST_X_Plus,      ('r',)     ),   # 0 <= r <= 31
-    ( 'ST\t-X, R{r}',       '1001 001r rrrr 1110',                      ST_Minus_X,     ('r',)     ),   # 0 <= r <= 31
-    ( 'ST\tY+, R{r}',       '1001 001r rrrr 1001',                      ST_Y_Plus,      ('r',)     ),   # 0 <= r <= 31
-    ( 'ST\t-Y, R{r}',       '1001 001r rrrr 1010',                      ST_Minus_Y,     ('r',)     ),   # 0 <= r <= 31
-    ( 'STD\tY+{q}, R{r}',   '10q0 qq1r rrrr 1qqq',                      STD_Y_q,        ('r', 'q') ),   # 0 <= r <= 31,         0 <= q <= 63
-    ( 'ST\tZ+, R{r}',       '1001 001r rrrr 0001',                      ST_Z_Plus,      ('r',)     ),   # 0 <= r <= 31
-    ( 'ST\t-Z, R{r}',       '1001 001r rrrr 0010',                      ST_Minus_Z,     ('r',)     ),   # 0 <= r <= 31
-    ( 'STD\tZ+{q}, R{r}',   '10q0 qq1r rrrr 0qqq',                      STD_Z_q,        ('r', 'q') ),   # 0 <= r <= 31          0 <= q <= 63
-    ( 'STS\t{K}, R{r}',     '1001 001r rrrr 0000 KKKK KKKK KKKK KKKK', STS,             ('r', 'K') ),   # 0 <= r <= 31, 0 <= K <= 65535
-    ( 'SUB\tR{d}, R{r}',    '0001 10rd dddd rrrr', SUB,                                 ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
-    ( 'SUBI\tR{h}, {K}',    '0101 KKKK hhhh KKKK', SUBI,                                ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
-    ( 'SWAP\tR{d}',         '1001 010d dddd 0010', SWAP,                                ('d',)     ),   # 0 <= d <= 31
-    ( 'WDR',                '1001 0101 1010 1000', WDR,                                 ()         ),
+    ( 'ADC\tR{d}, R{r}',        '0001 11rd dddd rrrr',  ADC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'ADD\tR{d}, R{r}',        '0000 11rd dddd rrrr',  ADD,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'ADIW\tR{p}, 0x{K:02x}',  '1001 0110 KKpp KKKK',  ADIW,           ('p', 'K') ),   # p \in {24,26,28,30},  0 <= K <= 63
+    ( 'AND\tR{d}, R{r}',        '0010 00rd dddd rrrr',  AND,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'ANDI\tR{h}, 0x{K:02x}',  '0111 KKKK hhhh KKKK',  ANDI,           ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'ASR\tR{d}',              '1001 010d dddd 0101',  ASR,            ('d',)     ),   # 0 <= d <= 31
+    ( 'BCLR\t{s}',              '1001 0100 1sss 1000',  BCLR,           ('s',)     ),   # 0 <= s <= 7
+    ( 'BLD\tR{d}, {b}',         '1111 100d dddd 0bbb',  BLD,            ('d', 'b') ),   # 0 <= d <= 31,         0 <= b <= 7
+    ( 'BRBC\t{s}, .{k}',        '1111 01kk kkkk ksss',  BRBC,           ('s', 'k') ),   # 0 <= s <= 7,          -64 <= k <= +63
+    ( 'BRBS\t{s}, {k}',         '1111 00kk kkkk ksss',  BRBS,           ('s', 'k') ),   # 0 <= s <= 7,          -64 <= k <= +63
+    ( 'BREAK',                  '1001 0101 1001 1000',  BREAK,          ()         ),
+    ( 'BSET\t{s}',              '1001 0100 0sss 1000',  BSET,           ('s',)     ),   # 0 <= s <= 7
+    ( 'BST\tR{d}, {b}',         '1111 101d dddd 0bbb',  BST,            ('d', 'b') ),   # 0 <= d <= 31,         0 <= b <= 7
+    ( 'CALL\t0x{K:04x}',        '1001 010K KKKK 111K KKKK KKKK KKKK KKKK', CALL, ('K',) ),   # 0 <= K < 64K, 0 <= K < 4M
+    ( 'CBI\t{A}, {b}',          '1001 1000 AAAA Abbb',  CBI,            ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
+    ( 'COM\tR{d}',              '1001 010d dddd 0000',  COM,            ('d',)     ),   # 0 <= d <= 31
+    ( 'CP\tR{d}, R{r}',         '0001 01rd dddd rrrr',  CP,             ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'CPC\tR{d}, R{r}',        '0000 01rd dddd rrrr',  CPC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'CPI\tR{h}, 0x{K:02x}',   '0011 KKKK hhhh KKKK',  CPI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'CPSE\tR{d}, R{r}',       '0001 00rd dddd rrrr',  CPSE,           ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'DEC\tR{d}',              '1001 010d dddd 1010',  DEC,            ('d',)     ),   # 0 <= d <= 31
+    ( 'EICALL',                 '1001 0101 0001 1001',  EICALL,         ()         ),
+    ( 'EIJMP',                  '1001 0100 0001 1001',  EIJMP,          ()         ),
+    ( 'ELPM',                   '1001 0101 1101 1000',  ELPM,           ()         ),
+    ( 'ELPM\tR{d}, Z',          '1001 000d dddd 0110',  ELPM_Z,         ('d')      ),   # 0 <= d <= 31
+    ( 'ELPM\tR{d}, Z+',         '1001 000d dddd 0111',  ELPM_Z_Plus,    ('d')      ),   # 0 <= d <= 31
+    ( 'EOR\tR{d}, R{r}',        '0010 01rd dddd rrrr',  EOR,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'FMUL\tR{h}, R{H}',       '0000 0011 0hhh 1HHH',  FMUL,           ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
+    ( 'FMULS\tR{h}, R{H}',      '0000 0011 1hhh 0HHH',  FMULS,          ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
+    ( 'FMULSU\tR{h}, R{H}',     '0000 0011 1hhh 1HHH',  FMULSU,         ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
+    ( 'ICALL',                  '1001 0101 0000 1001',  ICALL,          ()         ),
+    ( 'IJMP',                   '1001 0100 0000 1001',  IJMP,           ()         ),
+    ( 'IN\tR{d}, ${A:x}',       '1011 0AAd dddd AAAA',  IN,             ('A', 'd') ),   # 0 <= d <= 31,         0 <= A <= 63
+    ( 'INC\tR{d}',              '1001 010d dddd 0011',  INC,            ('d',)     ),   # 0 <= d <= 31
+    ( 'JMP\t0x{K:04x}',         '1001 010K KKKK 110K KKKK KKKK KKKK KKKK', JMP, ('K',) ),   # 0 <= K < 4M
+    ( 'LD\tR{d}, X',            '1001 000d dddd 1100',  LD_X,           ('d',)     ),   # 0 <= d <= 31
+    ( 'LD\tR{d}, X+',           '1001 000d dddd 1101',  LD_X_Plus,      ('d',)     ),   # 0 <= d <= 31
+    ( 'LD\tR{d}, -X',           '1001 000d dddd 1110',  LD_Minus_X,     ('d',)     ),   # 0 <= d <= 31
+    ( 'LD\tR{d}, Y+',           '1001 000d dddd 1001',  LD_Y_Plus,      ('d',)     ),   # 0 <= d <= 31
+    ( 'LD\tR{d}, -Y',           '1001 000d dddd 1010',  LD_Minus_Y,     ('d',)     ),   # 0 <= d <= 31
+    ( 'LDD\tR{d}, Y+{q}',       '10q0 qq0d dddd 1qqq',  LDD_Y_q,        ('d', 'q') ),   # 0 <= d <= 31,         0 <= q <= 63
+    ( 'LD\tR{d}, Z+',           '1001 000d dddd 0001',  LD_Z_Plus,      ('d',)     ),   # 0 <= d <= 31
+    ( 'LD\tR{d}, -Z',           '1001 000d dddd 0010',  LD_Minus_Z,     ('d',)     ),   # 0 <= d <= 31
+    ( 'LDD\tR{d}, Z+{q}',       '10q0 qq0d dddd 0qqq',  LDD_Z_q,        ('d', 'q') ),   # 0 <= d <= 31,         0 <= q <= 63
+    ( 'LDI\tR{h}, 0x{K:02x}',   '1110 KKKK hhhh KKKK',  LDI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'LDS\tR{r}, 0x{K:04x}',   '1001 000r rrrr 0000 KKKK KKKK KKKK KKKK', LDS, ('r', 'K') ),   # 0 <= d <= 31, 0 <= K <= 65535
+    ( 'LPM',                    '1001 0101 1100 1000',  LPM,            ('F',)     ),   # R0 implied
+    ( 'LPM\tR{d}, Z',           '1001 000d dddd 0100',  LPM_Z,          ('F', 'd') ),   # 0 <= d <= 31
+    ( 'LPM\tR{d}, Z+',          '1001 000d dddd 0101',  LPM_Z_Plus,     ('F', 'd') ),   # 0 <= d <= 31
+    ( 'LSR\tR{d}',              '1001 010d dddd 0110',  LSR,            ('d')      ),   # 0 <= d <= 31
+    ( 'MOV\tR{d}, R{r}',        '0010 11rd dddd rrrr',  MOV,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'MOVW\tR{p}, R{P}',       '0000 0001 pppp PPPP',  MOVW,           ('p', 'P') ),   # p \in {0,2,...,30},   P \in {0,2,...,30}
+    ( 'MUL\tR{d}, R{r}',        '1001 11rd dddd rrrr',  MUL,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'MULS\tR{h}, R{H}',       '0000 0010 hhhh HHHH',  MULS,           ('h', 'H') ),   # 16 <= h <= 31,        16 <= H <= 31
+    ( 'MULSU\tR{h}, R{H}',      '0000 0011 0hhh 0HHH',  MULSU,          ('h', 'H') ),   # 16 <= h <= 23,        16 <= H <= 23
+    ( 'NEG\tR{d}',              '1001 010d dddd 0001',  NEG,            ('d',)     ),   # 0 <= d <= 31
+    ( 'NOP',                    '0000 0000 0000 0000',  NOP,            ()         ),
+    ( 'OR\tR{d}, R{r}',         '0010 10rd dddd rrrr',  OR,             ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'ORI\tR{h}, 0x{K:02x}',   '0110 KKKK hhhh KKKK',  ORI,            ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'OUT\t${A:02x}, R{r}',    '1011 1AAr rrrr AAAA',  OUT,            ('A', 'r') ),   # 0 <= r <= 31,         0 <= A <= 63
+    ( 'POP\tR{d}',              '1001 000d dddd 1111',  POP,            ('d',)     ),   # 0 <= d <= 31
+    ( 'PUSH\tR{r}',             '1001 001r rrrr 1111',  PUSH,           ('r',)     ),   # 0 <= r <= 31
+    ( 'RCALL\t.{k:+}',          '1101 kkkk kkkk kkkk',  RCALL,          ('k',)     ),   # -2K <= k < 2K
+    ( 'RET',                    '1001 0101 0000 1000',  RET,            ()         ),
+    ( 'RETI',                   '1001 0101 0001 1000',  RETI,           ()         ),
+    ( 'RJMP\t.{k:+}',           '1100 kkkk kkkk kkkk',  RJMP,           ('k',)     ),   # -2K <= k <= 2K
+    ( 'ROR\tR{d}',              '1001 010d dddd 0111',  ROR,            ('d',)     ),   # 0 <= d <= 31
+    ( 'SBC\tR{d}, R{r}',        '0000 10rd dddd rrrr',  SBC,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'SBCI\tR{h}, 0x{K:02x}',  '0100 KKKK hhhh KKKK',  SBCI,           ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'SBI\t{A}, {b}',          '1001 1010 AAAA Abbb',  SBI,            ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
+    ( 'SBIC\t0x{A:02x}, {b}',   '1001 1001 AAAA Abbb',  SBIC,           ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
+    ( 'SBIS\t0x{A:02x}, {b}',   '1001 1011 AAAA Abbb',  SBIS,           ('A', 'b') ),   # 0 <= A <= 31,         0 <= b <= 7
+    ( 'SBIW\tR{p}, 0x{K:02x}',  '1001 0111 KKpp KKKK',  SBIW,           ('p', 'K') ),   # p \in {24,26,28,30},  0 <= K <= 63
+    ( 'SBRC\tR{r}, {b}',        '1111 110r rrrr 0bbb',  SBRC,           ('r', 'b') ),   # 0 <= r <= 31,         0 <= b <= 7
+    ( 'SBRS\tR{r}, {b}',        '1111 111r rrrr 0bbb',  SBRS,           ('r', 'b') ),   # 0 <= r <= 31,         0 <= b <= 7
+    ( 'SLEEP',                  '1001 0101 1000 1000',  SLEEP,          ()         ),
+    ( 'SPM',                    '1001 0101 1110 1000',  SPM,            ()         ),
+    ( 'ST\tX, R{r}',            '1001 001r rrrr 1100',  ST_X,           ('r',)     ),   # 0 <= r <= 31
+    ( 'ST\tX+, R{r}',           '1001 001r rrrr 1101',  ST_X_Plus,      ('r',)     ),   # 0 <= r <= 31
+    ( 'ST\t-X, R{r}',           '1001 001r rrrr 1110',  ST_Minus_X,     ('r',)     ),   # 0 <= r <= 31
+    ( 'ST\tY+, R{r}',           '1001 001r rrrr 1001',  ST_Y_Plus,      ('r',)     ),   # 0 <= r <= 31
+    ( 'ST\t-Y, R{r}',           '1001 001r rrrr 1010',  ST_Minus_Y,     ('r',)     ),   # 0 <= r <= 31
+    ( 'STD\tY+{q}, R{r}',       '10q0 qq1r rrrr 1qqq',  STD_Y_q,        ('r', 'q') ),   # 0 <= r <= 31,         0 <= q <= 63
+    ( 'ST\tZ+, R{r}',           '1001 001r rrrr 0001',  ST_Z_Plus,      ('r',)     ),   # 0 <= r <= 31
+    ( 'ST\t-Z, R{r}',           '1001 001r rrrr 0010',  ST_Minus_Z,     ('r',)     ),   # 0 <= r <= 31
+    ( 'STD\tZ+{q}, R{r}',       '10q0 qq1r rrrr 0qqq',  STD_Z_q,        ('r', 'q') ),   # 0 <= r <= 31          0 <= q <= 63
+    ( 'STS\t0x{K:04x}, R{r}',   '1001 001r rrrr 0000 KKKK KKKK KKKK KKKK', STS, ('r', 'K') ),   # 0 <= r <= 31, 0 <= K <= 65535
+    ( 'SUB\tR{d}, R{r}',        '0001 10rd dddd rrrr',  SUB,            ('d', 'r') ),   # 0 <= d <= 31,         0 <= r <= 31
+    ( 'SUBI\tR{h}, 0x{K:02x}',  '0101 KKKK hhhh KKKK',  SUBI,           ('h', 'K') ),   # 16 <= h <= 31,        0 <= K <= 255
+    ( 'SWAP\tR{d}',             '1001 010d dddd 0010',  SWAP,           ('d',)     ),   # 0 <= d <= 31
+    ( 'WDR',                    '1001 0101 1010 1000',  WDR,            ()         ),
 ]
 
 
 
+def FindStartEnd(oprd_chr, oprd_str, end_idx):
+    # Find start of operand string.
+    st = end_idx
+    while st >= 0 and oprd_str[st] != oprd_chr:
+        st -= 1
+        continue
+
+    # Find end of oprand string.
+    ed = st
+    while ed >= 0 and oprd_str[ed] == oprd_chr:
+        ed -= 1
+        continue
+
+    return st, ed
+
+
+def MkAbsoluteOperand(oprd_chr, oprd_str, word):
+    val = shifts = num_zeros = total_num_ones = 0
+    end_idx = len(oprd_str) - 1
+    while end_idx > 0:
+        st, ed = FindStartEnd(oprd_chr, oprd_str, end_idx)
+        num_ones = st - ed
+        total_num_ones += num_ones
+        if num_ones <= 0:
+            break
+        mask = int('1' * num_ones, 2) << (len(oprd_str) - st - 1)
+        num_zeros = end_idx - st
+        shifts += num_zeros
+        val |= (word & mask) >> shifts
+        end_idx = ed
+    return val, total_num_ones
+
+
+def Get16ByteOpc(hex_fmt, address):
+    l = hex_fmt.GetMemoryBytes()[address]
+    h = hex_fmt.GetMemoryBytes()[address + 1]
+    opc = (h << 8) | l
+    return opc
+
+
+def Get16ByteOpcSafe(hex_fmt, address):
+    if hex_fmt.GetNumBytes() < address + 2:
+        return None
+    return Get16ByteOpc(hex_fmt, address)
+
+
+def GetMasks(opc_rec):
+    opc_str = opc_rec[1].replace(' ', '')
+    opc = int(''.join([ '1' if c == '1' else '0' for c in opc_str ]), 2)
+    opc_mask = int(''.join([ '1' if c in '01' else '0' for c in opc_str ]), 2)
+    oprd_set = set([ c for c in opc_str if c not in '01' ])
+    oprd_masks = [ int(''.join([ '1' if c == s else '0' for c in opc_str ]), 2) for s in oprd_set ]
+    return opc, opc_mask, oprd_set, oprd_masks
+
+
+def GetTwosComplement(wrd, bits):
+    wrd_msk = (1 << bits) - 1
+    i = wrd & wrd_msk
+
+    # Convert address to two's complement for negative values.
+    neg_val = 1 << bits
+    sng_msk = 1 << (bits - 1)
+    i = i - (((wrd & sng_msk) == sng_msk) * neg_val)
+    return i
+
+
+def GetRelative7bit(word):
+    return GetTwosComplement(word, 7)
+
+
+def GetRelative12bit(word):
+    return GetTwosComplement(word, 12)
+
+
 def GetOperand(opc_str, oprd_chr, word):
     if 'K' == oprd_chr:
-        k, num_bits = AVR_disassemble.MkAbsoluteOperand('K', opc_str, word)
+        k, num_bits = MkAbsoluteOperand('K', opc_str, word)
         return k
 
     if 'k' == oprd_chr:
-        k, num_bits = AVR_disassemble.MkAbsoluteOperand('k', opc_str, word)
-        rel_k = AVR_disassemble.GetRelative7bit(k) if num_bits == 7 else AVR_disassemble.GetRelative12bit(k)
+        k, num_bits = MkAbsoluteOperand('k', opc_str, word)
+        rel_k = GetRelative7bit(k) if num_bits == 7 else GetRelative12bit(k)
         return rel_k
 
     if 'A' == oprd_chr:
-        a, num_bits = AVR_disassemble.MkAbsoluteOperand('A', opc_str, word)
+        a, num_bits = MkAbsoluteOperand('A', opc_str, word)
         return a
 
-    if oprd_chr in AVR_disassemble.ABS_OPRDS:
-        idx = AVR_disassemble.ABS_OPRDS.index(oprd_chr)
-        oprd_chr = AVR_disassemble.ABS_OPRDS[idx]
-        v, num_bits = AVR_disassemble.MkAbsoluteOperand(oprd_chr, opc_str, word)
+    if oprd_chr in ABS_OPRDS:
+        idx = ABS_OPRDS.index(oprd_chr)
+        oprd_chr = ABS_OPRDS[idx]
+        v, num_bits = MkAbsoluteOperand(oprd_chr, opc_str, word)
         return v
 
     if oprd_chr in [ 'p', 'P' ]:
         oprd_chr = oprd_chr if 'p' in oprd_chr else 'P'
-        p, num_bits = AVR_disassemble.MkAbsoluteOperand(oprd_chr, opc_str, word)
+        p, num_bits = MkAbsoluteOperand(oprd_chr, opc_str, word)
         p = p * 2 + ((num_bits == 2) * 24)
         return p
 
     if oprd_chr in [ 'h', 'H' ]:
         oprd_chr = 'h' if 'h' in oprd_chr else 'H'
-        h, num_bits = AVR_disassemble.MkAbsoluteOperand(oprd_chr, opc_str, word)
+        h, num_bits = MkAbsoluteOperand(oprd_chr, opc_str, word)
         h += 16
         return h
 
@@ -1244,7 +1195,7 @@ def Disassemble(instr_rec, word):
         if oprds[0] == 'K':
             return disasm.format(K=v)
         if oprds[0] == 'k':
-            return disasm.format(k=v)
+            return disasm.format(k=v * 2)
         if oprds[0] == 's':
             return disasm.format(s=v)
         if oprds[0] == 'd':
@@ -1286,31 +1237,69 @@ def Disassemble(instr_rec, word):
             return disasm.format(p=v1, P=v2)
         if oprds == ('s', 'k'):
             return disasm.format(s=v1, k=v2)
+        if oprds == ('r', 'b'):
+            return disasm.format(r=v1, b=v2)
         raise Exception('Could not find double operands!\n  0x{:04x}\n  {}'.format(word, instr_rec))
 
     raise Exception('Could recognize more than two operands!')
 
 
+def FindInstructionRecord(hex_fmt, PC):
+    hex_word = Get16ByteOpcSafe(hex_fmt, PC)
+    if hex_word == None:
+        return None, None
+
+    for inst_rec in INSTRUCTIONS:
+        opc, opc_mask, oprd_set, oprd_masks = GetMasks(inst_rec)
+        word = hex_word
+        num_words = 1
+        if opc_mask > 0xffff:
+            word_2 = Get16ByteOpcSafe(hex_fmt, PC + 2)
+            if word_2 == None:
+                continue
+
+            num_words = 2
+            word = (word << 16) | word_2
+        if (word & opc_mask) == opc:
+            return inst_rec, word
+
+    return None, hex_word
+
+
 
 class AVR8BitCPU:
-    def __init__(self, RAM_size, is_PC_16_bits=True):
-        self.regs = [ 0 for i in range(32) ]
-        self.cycles = 0
-        self.SREG = 0
-        self.PC = 0
-        self.SP = 0
-        self.RAM = [ 0 for i in range(RAM_size) ]
-        self.IO = [ 0 for i in range(64) ]
+    def __init__(self, RAM_size, flash_size, ext_IO_size, IO_names, ext_IO_names, is_PC_16_bits=True):
+        # CPU
+        self.regs          = [ 0 for i in range(32) ]
+        self.cycles        = 0
+        self.SREG          = 0
+        self.PC            = 0
+        self.SP            = 0
         self.is_PC_16_bits = is_PC_16_bits
 
-        self.is_next_skip = False           # TODO: Implement in execute function.
-        self.is_sleep = False               # TODO: Implement sleep functionality.
+        # Data space
+        self.IO            = [ 0 for i in range(64) ]
+        self.ext_IO        = [ 0 for i in range(ext_IO_size) ]
+        self.RAM           = [ 0 for i in range(RAM_size) ]
+        self.IO_names      = IO_names
+        self.ext_IO_names  = ext_IO_names
 
-        self.is_print_asm = IS_PRINT_ASM
-        self.ret_addrs = []
-
-        self.hex_fmt = None
+        # Flash memory
+        self.flash_size    = flash_size
+        self.PC_mask       = (flash_size // 2) - 1
+        self.hex_fmt       = None
         self.decoded_flash = []
+
+        # CPU States
+        self.is_next_skip  = False
+        self.is_sleep      = False      # TODO: Implement sleep functionality.
+
+        # Debug facilities
+        self.is_print_asm  = IS_PRINT_ASM
+
+        # Callbacks
+        self.io_write_func = None
+        self.io_read_func  = None
 
 
     def GetX(self):
@@ -1364,7 +1353,10 @@ class AVR8BitCPU:
 
     def ReadIO(self, addr):
         # TODO: Call registered hook function!
-        IO_name = ATmega8_regs.IO_NAMES[addr]
+        IO_name = self.IO_names[addr]
+
+        if self.io_read_func != None:
+            self.io_read_func(self, IO_name, addr)
 
         if IS_LOG_READ_IO:
             print('********** READ IO  %s  A:%02x' % (IO_name, addr))
@@ -1373,7 +1365,7 @@ class AVR8BitCPU:
 
     def ReadIOBit(self, addr, b):
         # TODO: Call registered hook function!
-        IO_name = ATmega8_regs.IO_NAMES[addr]
+        IO_name = self.IO_names[addr]
 
         if IS_LOG_READ_IO:
             print('********** READ IO BIT  %s  A:%02x  b:%d' % (IO_name, addr, b))
@@ -1381,7 +1373,7 @@ class AVR8BitCPU:
 
 
     def WriteIO(self, addr, val):
-        IO_name = ATmega8_regs.IO_NAMES[addr]
+        IO_name = self.IO_names[addr]
         if IS_LOG_WRITE_IO:
             print('********** WRITE IO   %s  A:%02x  V:%02x' % (IO_name, addr, val))
         if IO_name == 'SPH':
@@ -1391,29 +1383,15 @@ class AVR8BitCPU:
         if IO_name == 'SREG':
             self.SREG = val
 
-        # TODO: Call registered hook function!
-        global PortD_Data, OldPortD_Data, frame_num
-        if IO_name == 'PORTD':
-            data_str = ''.join(['*' if (val & (0x80 >> i)) else ' ' for i in range(8)])
-            PortD_Data.append(data_str)
-        if IO_name == 'PORTB':
-            prev_val = self.IO[addr]
-            if (prev_val == 0x7f) and (val == 0xff):
-                frame_num += 1
-                frame_data = PortD_Data[-8:]
-                if not OldPortD_Data == frame_data:
-                    if not os.path.isdir('Frames'):
-                        os.makedirs('Frames')
-                    out_path = os.path.join('Frames', 'device-%07d.jpg' % frame_num)
-                    draw_util.DrawDevice(frame_data, '-----', out_path)
-                    PortD_Data = []
-                    OldPortD_Data = frame_data
+        if self.io_write_func != None:
+            self.io_write_func(self, IO_name, addr, val)
+
         self.IO[addr] = val
 
 
     def WriteIO_ClearBit(self, addr, b):
         # TODO: Call registered hook function!
-        IO_name = ATmega8_regs.IO_NAMES[addr]
+        IO_name = self.IO_names[addr]
         if IS_LOG_WRITE_IO:
             print('********** WRITE IO CLR BIT  %s  A:%02x   V:%d' % (IO_name, addr, b))
         self.IO[addr] &= ~(1 << b)
@@ -1421,7 +1399,7 @@ class AVR8BitCPU:
 
     def WriteIO_SetBit(self, addr, b):
         # TODO: Call registered hook function!
-        IO_name = ATmega8_regs.IO_NAMES[addr]
+        IO_name = self.IO_names[addr]
         if IS_LOG_WRITE_IO:
             print('********** WRITE IO SET BIT  %s  %02x   %d' % (IO_name, addr, b))
         self.IO[addr] != (1 << b)
@@ -1430,60 +1408,78 @@ class AVR8BitCPU:
     def WriteSP(self, val):
         val = val & SP_MASK
         self.SP = val
-        self.IO[ATmega8_regs.IO_NAMES.index('SPL')] = val & 0xff
-        self.IO[ATmega8_regs.IO_NAMES.index('SPH')] = (val >> 8) & 0xff
+        self.IO[self.IO_names.index('SPL')] = val & 0xff
+        self.IO[self.IO_names.index('SPH')] = (val >> 8) & 0xff
 
 
-    def ReadRAM(self, addr):
+    def ReadDataSpace(self, addr):
         if addr < 32:
             return self.regs[addr]
 
         if addr < (32 + 64):
             return self.ReadIO(addr - 32)
 
-        ram_addr = (addr - 32 - 64) & (len(self.RAM) - 1)
+        if self.ext_IO:
+            if addr < (32 + 64 + len(self.ext_IO)):
+                return self.ext_IO[addr - (32 + 64)]
+
+            return self.RAM[addr - (32 + 64 + len(self.ext_IO))]
+
+        ram_addr = (addr - (32 + 64)) & SP_MASK
         return self.RAM[ram_addr]
 
 
-    def WriteRAM(self, addr, val):
+    def WriteDataSpace(self, addr, val):
         if addr < 32:
             self.regs[addr] = val
-        elif addr < (32 + 64):
+            return
+
+        if addr < (32 + 64):
             self.WriteIO(addr - 32, val)
-        elif addr < (32 + 64 + len(self.RAM)):
-            ram_addr = (addr - 32 - 64) & (len(self.RAM) - 1)
+            return
+
+        if self.ext_IO:
+            if addr < (32 + 64 + len(self.ext_IO)):
+                self.ext_IO[addr - (32 + 64)] = val
+                return
+
+            if addr < (32 + 64 + len(self.ext_IO) + len(self.RAM)):
+                ram_addr = (addr - (32 + 64 + len(self.ext_IO))) & SP_MASK
+                self.RAM[ram_addr] = val
+                if IS_LOG_WRITE_RAM:
+                    val_str = ''.join(['*' if val & (0x80 >> b) else ' ' for b in range(8)])
+                    print('WriteDataSpace(addr:0x%04x  <-  val:`%s\')' % (addr, val_str))
+                return
+
+            ram_end = 32 + 64 + len(self.ext_IO) + len(self.RAM)
+            err_msg = 'WriteDataSpace(addr:0x%04x, val:0x%02x)\n' % (addr, val)
+            err_msg += '  Address (0x%04x) is outside of data space range (0x%04x)!' % (addr, ram_end)
+            print(err_msg)
+            if IS_OUT_OF_RANGE_EXCEPTION:
+                raise ValueError(err_msg)
+            return
+
+        if addr < (32 + 64 + len(self.RAM)):
+            ram_addr = (addr - (32 + 64)) & SP_MASK
             self.RAM[ram_addr] = val
             if IS_LOG_WRITE_RAM:
-                print(('WriteRAM    0x%04x <- `' % addr) + ''.join(['*' if val & (0x80 >> b) else ' ' for b in range(8)]) + '\'')
+                val_str = ''.join(['*' if val & (0x80 >> b) else ' ' for b in range(8)])
+                print('WriteDataSpace(addr:0x%04x  <-  val:`%s\')' % (addr, val_str))
+            return
 
-
-    def FindInstructionRecord(self, hex_fmt, PC):
-        hex_word = AVR_disassemble.Get16ByteOpcSafe(hex_fmt, PC)
-        if hex_word == None:
-            return None, None
-
-        for inst_rec in INSTRUCTIONS:
-            opc, opc_mask, oprd_set, oprd_masks = AVR_disassemble.GetMasks(inst_rec)
-            word = hex_word
-            num_words = 1
-            if opc_mask > 0xffff:
-                word_2 = AVR_disassemble.Get16ByteOpcSafe(hex_fmt, PC + 2)
-                if word_2 == None:
-                    continue
-
-                num_words = 2
-                word = (word << 16) | word_2
-            if (word & opc_mask) == opc:
-                return inst_rec, word
-
-        return None, hex_word
+        ram_end = 32 + 64 + len(self.RAM)
+        err_msg = 'WriteDataSpace(addr:0x%04x, val:0x%02x)\n' % (addr, val)
+        err_msg += '  Address (0x%04x) is outside of data space range (0x%04x)!' % (addr, ram_end)
+        print(err_msg)
+        if IS_OUT_OF_RANGE_EXCEPTION:
+            raise ValueError(err_msg)
 
 
     def DecodeFlash(self, hex_fmt):
         self.hex_fmt = hex_fmt
         num_words = self.hex_fmt.GetNumBytes() // 2
         for i in range(num_words):
-            instr_rec, hex_word = self.FindInstructionRecord(self.hex_fmt, i * 2)
+            instr_rec, hex_word = FindInstructionRecord(self.hex_fmt, i * 2)
             if instr_rec:
                 oprd_str = instr_rec[1].replace(' ', '')
                 instr_args = [ GetOperand(oprd_str, oprd_chr, hex_word) for oprd_chr in instr_rec[3] ]
@@ -1494,16 +1490,20 @@ class AVR8BitCPU:
 
 
     def Exec(self):
-        pc_idx = self.PC // 2
-        (instr_idx, instr_args, word) = self.decoded_flash[pc_idx]
+        PC = self.PC
+        (instr_idx, instr_args, word) = self.decoded_flash[PC]
         if instr_idx == -1:
-            raise Exception('Unknown instruction!\n  PC: 0x{:04x}\n   W: 0x{:04x}'.format(self.PC, word))
+            raise Exception('Unknown instruction!\n  PC: 0x{:04x}\n   W: 0x{:04x}'.format(PC, word))
 
         instr_rec = INSTRUCTIONS[instr_idx]
         if self.is_print_asm:
-            print('{:>7x}  {}'.format(self.PC, Disassemble(instr_rec, word)))
+            print('{:>7x}  {}'.format(self.PC * 2, Disassemble(instr_rec, word)))
         if self.is_next_skip:
-            raise RuntimeError('Skip Next in the start of Exec()!')
+            raise RuntimeError('Unhandled skip next instruction in the start of Exec()!')
+
+        # Most of instructions atleast increment PC and cycles by one.
+        IncPC(self)
+        IncCycles(self)
 
         func    = instr_rec[2]
         oprds   = instr_rec[3]
@@ -1521,17 +1521,17 @@ class AVR8BitCPU:
         elif len(oprds) == 2:
             func(self, instr_args[0], instr_args[1])
 
-        # Skip next instruction.
+        # Skip next instruction (CPSE, SBIC, SBIS, SBRC, SBRS).
         if self.is_next_skip:
             self.is_next_skip = False
-            (nxt_instr_idx, nxt_instr_args, nxt_word) = self.decoded_flash[pc_idx + 1]
+            (nxt_instr_idx, nxt_instr_args, nxt_word) = self.decoded_flash[PC + 1]
             if nxt_instr_idx == -1:
                 raise RuntimeError('Coud not jump from unknown instruction!')
 
             nxt_instr = INSTRUCTIONS[nxt_instr_idx]
             nxt_str = nxt_instr[1].replace(' ', '')
             num_words = len(nxt_str) // 16
-            IncPC(self, 2 + (2 * (num_words == 2)))
+            IncPC(self, 1 + (num_words == 2))
             IncCycles(self, 1 + (num_words == 2))
 
 
@@ -1555,7 +1555,7 @@ class AVR8BitCPU:
         # Print program status.
         sreg_str = self.GetSREGStrCompact()
         s += 'SREG     0x{:02x}   ({})\n'.format(self.SREG, sreg_str)
-        s += 'PC       0x{:04x}\n'.format(self.PC)
+        s += 'PC       0x{:04x}\n'.format((self.PC * 2) & 0x1ffff)
         s += 'SP       0x{:04x}\n'.format(self.SP)
         s += '\n'
 
@@ -1563,16 +1563,26 @@ class AVR8BitCPU:
         s += 'IO:\n'
         i = 0
         while i < len(self.IO):
-            s += ''.join(['{} {:02x}'.format('   ' if j == 8 else '', self.IO[i + j]) for j in range(16)])
+            s += ''.join(['{} {:02x}'.format('  ' if j == 8 else '', self.IO[i + j]) for j in range(16)])
             s += '\n'
             i += 16
         s += '\n'
+
+        # Print extended IO.
+        if self.ext_IO:
+            s += 'ExtIO:\n'
+            i = 0
+            while i < len(self.ext_IO):
+                s += ''.join(['{} {:02x}'.format('  ' if j == 8 else '', self.ext_IO[i + j]) for j in range(16)])
+                s += '\n'
+                i += 16
+            s += '\n'
 
         # Print RAM.
         s += 'RAM:\n'
         i = 0
         while i < len(self.RAM):
-            s += ''.join(['{} {:02x}'.format('   ' if j == 8 else '', self.RAM[i + j]) for j in range(16)])
+            s += ''.join(['{} {:02x}'.format('  ' if j == 8 else '', self.RAM[i + j]) for j in range(16)])
             s += '\n'
             i += 16
         return s

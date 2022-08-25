@@ -4,7 +4,7 @@
 Copyright (c) 2008-2016 by
 David Etherton, Eric Anderton, Alec Bourque (Uze), Filipe Rinaldi,
 Sandor Zsuga (Jubatian), Matt Pandina (Artcfox)
-        
+
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
 files (the "Software"), to deal in the Software without
@@ -55,7 +55,7 @@ bool isUzeromFile(char* in_filename){
         }
         fclose(f);
         return true;
-    }    
+    }
     return false;
 }
 
@@ -69,14 +69,14 @@ bool loadUzeImage(char* in_filename,RomHeader *header,u8 *buffer){
             printf("Error: failed to read the file %s.\n", in_filename);
             return false;
 	}
-               
+
         if(header->version != HEADER_VERSION){
             printf("Error: cannot parse version %d UzeROM files.\n",header->version);
         }
         printf("%s\n",header->name);
         printf("%s\n",header->author);
         printf("%d\n",header->year);
-        
+
         if(header->target == 0){
             printf("Uzebox 1.0 - ATmega644\n");
         }
@@ -86,14 +86,14 @@ bool loadUzeImage(char* in_filename,RomHeader *header,u8 *buffer){
             return false;
         }
         printf("\n");
-        
+
         if (fread(buffer,1,header->progSize,f) != header->progSize) {
             printf("Erro: failed to read the file %s.\n", in_filename);
             return false;
 	}
         fclose(f);
         return true;
-    }    
+    }
     return false;
 }
 
@@ -132,8 +132,8 @@ bool loadHex(const char *in_filename,unsigned char *buffer,unsigned int *bytesRe
 	//:02 65D2 00 0100 C6
 	//:00 0000 01 FF [EOF marker]
 
-	//First field is the byte count. Second field is the 16-bit address. Third field is the record type; 
-	//00 is data, 01 is EOF.	For record type zero, next "wide" field is the actual data, followed by a 
+	//First field is the byte count. Second field is the 16-bit address. Third field is the record type;
+	//00 is data, 01 is EOF.	For record type zero, next "wide" field is the actual data, followed by a
 	//checksum.
 	u16 progmemLast=0;
 	char line[128];

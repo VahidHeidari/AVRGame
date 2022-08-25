@@ -1,3 +1,5 @@
+import os
+
 import PIL
 import PIL.ImageDraw
 import PIL.Image
@@ -46,12 +48,25 @@ def DrawDevice(display, buttons, out_path):
     # Draw buttons.
     DrawButton(drw, buttons[0], 10, 90)     # Left
     DrawButton(drw, buttons[1], 60, 90)     # Right
-    DrawButton(drw, buttons[2], 35, 65)     # Up
-    DrawButton(drw, buttons[3], 35, 115)    # Down
+    DrawButton(drw, buttons[3], 35, 65)     # Up
+    DrawButton(drw, buttons[2], 35, 115)    # Down
     DrawButton(drw, buttons[4], 340, 90)    # Fire
 
     # Save result.
     img.save(out_path)
+
+
+def MakeGIFAnimation(base_dir, out_name):
+    imgs = [ PIL.Image.open(os.path.join(base_dir, fl)) for fl in
+            sorted(os.listdir(base_dir)) if fl.endswith('.jpg') ]
+    print('Number of frames : %d' % len(imgs))
+    imgs[0].save(out_name, save_all=True, append_images=imgs[1:],
+            optimize=True, duration=30, loop=0)
+    for im in imgs:
+        im.close()
+
+    img = PIL.Image.open(out_name)
+    print('Num Gif frames : %d' % img.n_frames)
 
 
 

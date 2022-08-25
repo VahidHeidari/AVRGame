@@ -35,17 +35,13 @@ THE SOFTWARE.
 
 
 
-avr8 uzebox;
-
-
-
 void showHelp(char* programName)
 {
     printerr("Uzebox Emulator %s\n"
 			"- Runs an Uzebox game file in either .hex or .uze format.\n"
 			"Usage:\n",
 		VERSION);
-    printerr("\t%s HEX_PATH NUM_CYCLES\n",programName);
+    printerr("\t%s CPU_TYPE HEX_PATH\n", programName);
 }
 
 std::string MakeStatePath(const char* hex_img_path)
@@ -65,16 +61,23 @@ std::string MakeStatePath(const char* hex_img_path)
 
 int main(int argc,char **argv)
 {
-    if(argc < 2) {
+    if (argc < 3) {
         showHelp(argv[0]);
 		return 1;
     }
 
 	// Get command line arguments.
-	char* heximage = argv[1];
+	const char* cpu_type = argv[1];
+	const char* heximage = argv[2];
 	std::cout << "loading    : `" << heximage << '\'' << std::endl;
 	std::string state_path = MakeStatePath(argv[0]);
 	std::cout << "State Path : `" << state_path << '\'' << std::endl;
+
+	avr8 uzebox;
+	if (strcmp(cpu_type, "ATmega168") == 0)
+		uzebox.InitMemory(MEGA168_PROG_SIZE, MEGA168_EXT_IO_SIZE);
+	else
+		uzebox.InitMemory(MEGA8_PROG_SIZE, MEGA8_EXT_IO_SIZE);
 
 	unsigned char* buffer = (unsigned char*)(uzebox.progmem);
 	if (!loadHex(heximage, buffer)) {

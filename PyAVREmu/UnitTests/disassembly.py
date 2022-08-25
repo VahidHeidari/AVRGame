@@ -11,6 +11,7 @@ import subprocess
 import time
 import unittest
 
+import AVR_CPU
 import AVR_disassemble
 
 
@@ -40,6 +41,7 @@ def Log(msg, is_append_file=IS_APPEND_FILE, is_verbose=IS_VERBOSE):
 def AddCygwinPath():
     if os.name != 'nt':
         return
+
     env_path = os.environ['PATH']
     paths = [ p.lower() for p in env_path.split(';') ]
     if CYGWIN_PATH not in paths:
@@ -53,6 +55,7 @@ def AddCygwinPath():
 def RemoveCygwinPath():
     if os.name != 'nt':
         return
+
     env_path = os.environ['PATH']
     paths = [ p.lower() for p in env_path.split(';') ]
     if CYGWIN_PATH in paths:
@@ -86,26 +89,36 @@ def RunCommand(cmd):
 
 class MiscellaneousTestCases(unittest.TestCase):
     def test_OprChrs(self):
-        INSTRS = AVR_disassemble.INSTRUCTIONS
+        INSTRS = AVR_CPU.INSTRUCTIONS
         opr_chrs = set([ c for c in ''.join([r[1].replace(' ', '') for r in INSTRS]) if c not in '01' ])
         print(opr_chrs)
-        expt_list = ['A', 'H', 'K', 'P', 'b', 'd', 'h', 'k', 'p', 'q', 'r']
+        expt_list = ['A', 'H', 'K', 'P', 'b', 'd', 'h', 'k', 'p', 'q', 'r', 's']
         self.assertEqual(expt_list, sorted(list(opr_chrs)))
 
         if PRINT_INSTRUCTIONS:
             for r in INSTRS:
-                opc, opc_mask, oprd_set, oprd_masks = AVR_disassemble.GetMasks(r)
+                opc, opc_mask, oprd_set, oprd_masks = AVR_CPU.GetMasks(r)
                 print(r[0], hex(opc_mask), oprd_set, ['{:04x}'.format(o) for o in oprd_masks])
 
 
     def test_MkAbsoluteOperand(self):
-        self.assertEqual((0x0001, 4), AVR_disassemble.MkAbsoluteOperand('K', '0100KKKK0000', 0xe15))
-        self.assertEqual((0x001f, 5), AVR_disassemble.MkAbsoluteOperand('K', '01K0KKKK0000', 0xfff))
-        self.assertEqual((0x003a, 6), AVR_disassemble.MkAbsoluteOperand('K', 'K1K0KKKK0000', 0xaaf))
+        self.assertEqual((0x0001, 4), AVR_CPU.MkAbsoluteOperand('K', '0100KKKK0000', 0xe15))
+        self.assertEqual((0x001f, 5), AVR_CPU.MkAbsoluteOperand('K', '01K0KKKK0000', 0xfff))
+        self.assertEqual((0x003a, 6), AVR_CPU.MkAbsoluteOperand('K', 'K1K0KKKK0000', 0xaaf))
+
+        # OUT 0x1c, R30
+        self.assertEqual((0x1c, 6), AVR_CPU.MkAbsoluteOperand('A', '10111AArrrrrAAAA', 0xbbec))
+        self.assertEqual((0x1e, 5), AVR_CPU.MkAbsoluteOperand('r', '10111AArrrrrAAAA', 0xbbec))
 
 
     def test_7bit(self):
-        self.assertEqual(-18, AVR_disassemble.GetRelative7bit(0xf7b9 >> 3))
+        self.assertEqual( -9, AVR_CPU.GetRelative7bit(0xf7b9 >> 3))
+        self.assertEqual(-18, AVR_CPU.GetRelative7bit(0xf7b9 >> 2))
+
+
+    def test_12bit(self):
+        self.assertEqual(   92, AVR_CPU.GetRelative12bit(0x5c))
+        self.assertEqual(-3064, AVR_CPU.GetRelative12bit(0xa04) * 2)
 
 
     def test_FmtException(self):
@@ -132,7 +145,8 @@ class DisassembleTestCases(unittest.TestCase):
 
 
     def RunAVRDisassemble(self, hex_path):
-        exit_code, output, err = RunCommand([ 'python', 'AVR_disassemble.py', hex_path ])
+        cmd = [ 'python', 'AVR_disassemble.py', hex_path ]
+        exit_code, output, err = RunCommand(cmd)
         self.assertEqual(0, exit_code)
         self.assertEqual(None, err)
         return output
@@ -181,11 +195,17 @@ class DisassembleTestCases(unittest.TestCase):
 
 
     def test_AVRDisassemble(self):
-        file_path_1 = os.path.join('Datasets', 'GameAVR')
+        file_path_1 = os.path.join('Datasets', 'GameAVR-Pong')
         self.CheckAssemblyFile(file_path_1)
 
-        file_path_2 = os.path.join('Datasets', 'GameDemoSelect(Any_168)')
+        file_path_2 = os.path.join('Datasets', 'GameAVR-Pong-168')
         self.CheckAssemblyFile(file_path_2)
+
+        file_path_3 = os.path.join('Datasets', 'GameDemoSelect(Any_168)')
+        self.CheckAssemblyFile(file_path_3)
+
+        file_path_4 = os.path.join('Datasets', 'AVR_GAME')
+        self.CheckAssemblyFile(file_path_4)
 
 
 

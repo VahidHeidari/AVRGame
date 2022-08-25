@@ -1,4 +1,4 @@
 #!/bin/bash
 
-Debug/uzem.exe ../../Datasets/GameAVR.hex
+Debug/uzem.exe ATmega8 ../../Datasets/AVR_GAME.hex
 

@@ -23,26 +23,26 @@
 
 1111 01kk kkkk ksss   BRBC      s, k           0 <= s <= 7,        -64 <= k <= +63
 1111 01kk kkkk k000   BRCC      k              -64 <= k <= +63
-1111 01kk kkkk k100   BRGE      k              -64 <= k <= +63
-1111 01kk kkkk k101   BRHC      k              -64 <= k <= +63
-1111 01kk kkkk k111   BRID      k              -64 <= k <= +63
+1111 01kk kkkk k000   BRSH      k              -64 <= k <= +63
 1111 01kk kkkk k001   BRNE      k              -64 <= k <= +63
 1111 01kk kkkk k010   BRPL      k              -64 <= k <= +63
-1111 01kk kkkk k000   BRSH      k              -64 <= k <= +63
-1111 01kk kkkk k110   BRTC      k              -64 <= k <= +63
 1111 01kk kkkk k011   BRVC      k              -64 <= k <= +63
+1111 01kk kkkk k100   BRGE      k              -64 <= k <= +63
+1111 01kk kkkk k101   BRHC      k              -64 <= k <= +63
+1111 01kk kkkk k110   BRTC      k              -64 <= k <= +63
+1111 01kk kkkk k111   BRID      k              -64 <= k <= +63
 
 
 1111 00kk kkkk ksss   BRBS      s, k           0 <= s <= 7,        -64 <= k <= +63
 1111 00kk kkkk k000   BRCS      k              -64 <= k <= +63
-1111 00kk kkkk k001   BREQ      k              -64 <= k <= +63
-1111 00kk kkkk k101   BRHS      K              -64 <= k <= +63
-1111 00kk kkkk k111   BRIE      k              -64 <= k <= +63
 1111 00kk kkkk k000   BRLO      k              -64 <= k <= +63
-1111 00kk kkkk k100   BRLT      k              -64 <= k <= +63
+1111 00kk kkkk k001   BREQ      k              -64 <= k <= +63
 1111 00kk kkkk k010   BRMI      k              -64 <= k <= +63
-1111 00kk kkkk k110   BRTS      k              -64 <= k <= +63
 1111 00kk kkkk k011   BRVS      k              -64 <= k <= +63
+1111 00kk kkkk k100   BRLT      k              -64 <= k <= +63
+1111 00kk kkkk k101   BRHS      K              -64 <= k <= +63
+1111 00kk kkkk k110   BRTS      k              -64 <= k <= +63
+1111 00kk kkkk k111   BRIE      k              -64 <= k <= +63
 
 
 1111 01kk kkkk k000   BRCC      k              -64 <= k <= +63

@@ -79,7 +79,7 @@ class IntelHexFormatTestCases(unittest.TestCase):
 
     def test_ReadProgMem(self):
         hex_fmt = Intel_hex.IntelHexReader()
-        hex_path = os.path.join('Datasets', 'GameAVR.hex')
+        hex_path = os.path.join('Datasets', 'GameAVR-Pong.hex')
         self.assertTrue(hex_fmt.ReadFromFile(hex_path))
 
         self.ReadByte(hex_fmt, 0x60, 0xff)

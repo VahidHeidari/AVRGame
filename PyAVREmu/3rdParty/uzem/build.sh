@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BUILD_TYPE="Debug"
-#BUILD_TYPE="Release"
-#BUILD_TYPE="RelWithDebug"
+#BUILD_TYPE="Debug"
+BUILD_TYPE="Release"
+#BUILD_TYPE="RelWithDebInfo"
 
 BUILD_DIR="$BUILD_TYPE"
 OUTPUT_DIR=".."

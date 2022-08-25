@@ -1,18 +1,37 @@
+#******************************************************************************
+#*                                                                            *
+#*                      AVR Game Demo                                         *
+#*                                                                            *
+#* This is AVRGame project. AVRGame is a small, low cost, and open source     *
+#* hand held console based on AVR microcontroller.                            *
+#******************************************************************************
+
 import os
 import subprocess
 import time
 import unittest
 
-import ATmega8
+import ATmega
 import Intel_hex
 
 
 
-MAX_INSTR_NUM = 90000
+#MAX_INSTR_NUM = 90000
+#MAX_INSTR_NUM = 6720
+MAX_INSTR_NUM = 3147
+#MAX_INSTR_NUM = 720
+#MAX_INSTR_NUM = 10
 
-HEX_PATH   = os.path.join('Datasets', 'GameAVR.hex')
-STATE_PATH = os.path.join('3rdParty', 'uzem', 'Debug', 'state.txt')
-UZEM_EXE   = os.path.abspath(os.path.join('3rdParty', 'uzem', 'Debug', 'uzem.exe'))
+HEX_PATH_PONG     = os.path.join('Datasets', 'GameAVR-Pong.hex')
+HEX_PATH_PONG_168 = os.path.join('Datasets', 'GameAVR-Pong-168.hex')
+HEX_PAHT_DEMO_ANY = os.path.join('Datasets', 'GameDemoSelect(Any_168).hex')
+HEX_PAHT_AVR_GAME = os.path.join('Datasets', 'AVR_GAME.hex')
+
+STATE_PATH      = os.path.join('3rdParty', 'uzem', 'Release', 'state.txt')
+UZEM_EXE        = os.path.abspath(os.path.join('3rdParty', 'uzem', 'Release', 'uzem.exe'))
+if not os.path.isfile(UZEM_EXE):
+    STATE_PATH      = os.path.join('3rdParty', 'uzem', 'Debug', 'state.txt')
+    UZEM_EXE        = os.path.abspath(os.path.join('3rdParty', 'uzem', 'Debug', 'uzem.exe'))
 
 IS_VERBOSE     = True
 IS_APPEND_FILE = False
@@ -103,40 +122,46 @@ def WriteStateToFile(my_state, uz_state, old_my_state, old_uz_state):
 
 
 class EmuTestCases(unittest.TestCase):
-    def test_Emu(self):
+    def RunCPUs(self, cpu_type, hex_path):
+        print('RunCPUs(cpu_type:' + cpu_type + ', hex_path:' +  hex_path + ')')
         # Read hex file.
         hex_fmt = Intel_hex.IntelHexReader()
-        print(' Emu Test -> `%s\'' % HEX_PATH)
-        self.assertTrue(os.path.isfile(HEX_PATH))
-        self.assertTrue(hex_fmt.ReadFromFile(HEX_PATH))
+        print(' Emu Test -> `%s\'' % hex_path)
+        self.assertTrue(os.path.isfile(hex_path))
+        self.assertTrue(hex_fmt.ReadFromFile(hex_path))
 
         # Delete `state.txt' file.
         if os.path.isfile(STATE_PATH):
             os.remove(STATE_PATH)
             print(' `%s\' removed!' % STATE_PATH)
 
-        mega8 = ATmega8.ATmega8()
-        mega8.DecodeFlash(hex_fmt)
+        mega = ATmega.ATmega8() if cpu_type == 'ATmega8' else ATmega.ATmega168()
+        mega.DecodeFlash(hex_fmt)
 
-        cmd = [ UZEM_EXE, HEX_PATH ]
+        cmd = [ UZEM_EXE, cpu_type, hex_path ]
+        print(' cmd : [ %s ]' % ', '.join(cmd))
         instr_num = old_pc = 0
-        old_my_state = old_uz_state = ''
+        my_state = uz_state = old_my_state = old_uz_state = ''
         AddCygwinPath()
         while instr_num < MAX_INSTR_NUM:
             # Run my CPU.
-            mega8.Exec()
-            my_state = mega8.Print()
+            mega.Exec()
+            my_state = mega.Print()
 
             # Run UZEM CPU.
             exit_code, out_put, err = RunCommandQuiet(cmd)
             if exit_code != 0:
                 print('******************************')
+                print(' R U N   U Z E M   E R R O R')
+                print('')
                 print('Exit Code  : %x' % exit_code)
                 print('Output     : `%s\'' % out_put)
                 print('Error      : `%s\'' % err)
+                print(' -- IN HEX : `%s\' -- ' % hex_path)
+                print(' --    CPU : %s --' % cpu_type)
                 print(' -- #INSTR : %4d --' % instr_num)
-                print(' -- LST PC : %04x --' % old_pc)
-                print(' -- MY  PC : %04x --' % mega8.cpu.PC)
+                print(' -- LST PC : %04x --' % ((old_pc * 2) & 0x1ffff))
+                print(' -- MY  PC : %04x --' % ((mega.cpu.PC * 2) & 0x1ffff))
                 print('MY STATE:\n' + my_state + '\n')
                 print('UZ STATE:\n' + uz_state)
                 print('******************************')
@@ -151,21 +176,38 @@ class EmuTestCases(unittest.TestCase):
 
             # Check states.
             if my_state != uz_state:
-                print(' -- #INSTR: %4d --' % instr_num)
-                print(' -- LST PC: %04x --' % old_pc)
-                print(' -- MY  PC: %04x --' % mega8.cpu.PC)
+                print('******************************')
+                print('   S T A T E S   E R R O R')
+                print('')
+                print(' -- IN HEX : `%s\' -- ' % hex_path)
+                print(' --    CPU : %s --' % cpu_type)
+                print(' -- #INSTR : %4d --' % instr_num)
+                print(' -- LST PC : %04x --' % ((old_pc * 2) & 0x1ffff))
+                print(' -- MY  PC : %04x --' % ((mega.cpu.PC * 2) & 0x1ffff))
                 print('output: \n' + out_put + '\n')
                 print('MY STATE:\n' + my_state + '\n')
                 print('UZ STATE:\n' + uz_state)
+                print('******************************')
                 WriteStateToFile(my_state, uz_state, old_my_state, old_uz_state)
             self.assertEqual(my_state, uz_state)
 
             instr_num += 1
-            old_pc = mega8.cpu.PC
+            old_pc = mega.cpu.PC
             old_my_state = my_state
             old_uz_state = uz_state
         print('\n Num Instructions: %d\n' % instr_num)
         RemoveCygwinPath()
+
+
+    def test_Emu(self):
+        if os.name == 'nt':
+            global HEX_PAHT_DEMO_ANY
+            HEX_PAHT_DEMO_ANY = HEX_PAHT_DEMO_ANY.replace('\\', '/')
+
+        self.RunCPUs('ATmega8',   HEX_PATH_PONG)
+        self.RunCPUs('ATmega168', HEX_PATH_PONG_168)
+        self.RunCPUs('ATmega168', HEX_PAHT_DEMO_ANY)
+        self.RunCPUs('ATmega8',   HEX_PAHT_AVR_GAME)
 
 
 
