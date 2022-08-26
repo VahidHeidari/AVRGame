@@ -44,5 +44,5 @@ int ball_frame_cnt;
 
 int input_frame_cnt;
 
-GameFunction games[MAX_GAMES] = { (GameFunction)Pong, Tetris, Snake, Quarth};
+GameFunction games[MAX_GAMES] = { (GameFunction)Pong, Tetris, Snake, Quarth };
 

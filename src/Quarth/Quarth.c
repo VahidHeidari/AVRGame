@@ -103,6 +103,10 @@ void ShiftBuilding()
     if (--building_frame_cnt < 0) {
         building_frame_cnt = BUILDING_FRAME_CNT;
 
+		// Clear bullet.
+		if (ball_y >= -1)
+			monitor[ball_y] &= ~(1 << ball_x);
+
 		// Shift building.
         for (i = building_height; i > 0; --i)
             monitor[i] = monitor[i - 1];
@@ -111,6 +115,10 @@ void ShiftBuilding()
         do {
             r = (unsigned char)rand();
         } while (r == COMPLETE_LINE);
+
+		// Put bullet at position again.
+		if (ball_y >= -1)
+			monitor[ball_y] |= (1 << ball_x);
 
         if ((monitor[0] |= r) == COMPLETE_LINE)
             monitor[0] ^= (1 << (r % DISPLAY_WIDTH));

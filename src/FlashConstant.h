@@ -31,7 +31,7 @@
 #include <avr/pgmspace.h>
 
 #define FLASH_CONSTANT(X)       X PROGMEM
-#define READ_BYTE(X)            pgm_read_byte(&X)
+#define READ_BYTE(X)            pgm_read_byte(&(X))
 
 // CodeVision compiler
 #else
