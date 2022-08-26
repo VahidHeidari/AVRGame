@@ -1,3 +1,11 @@
+#******************************************************************************
+#*                                                                            *
+#*                      AVR Game Demo                                         *
+#*                                                                            *
+#* This is AVRGame project. AVRGame is a small, low cost, and open source     *
+#* hand held console based on AVR microcontroller.                            *
+#******************************************************************************
+
 import os
 
 import PIL
