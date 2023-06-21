@@ -5,7 +5,6 @@ BUILD_TYPE="Release"
 #BUILD_TYPE="RelWithDebInfo"
 
 BUILD_DIR="$BUILD_TYPE"
-OUTPUT_DIR=".."
 
 echo "Building..."
 mkdir -p "$BUILD_DIR"
