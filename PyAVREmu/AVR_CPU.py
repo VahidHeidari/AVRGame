@@ -1270,7 +1270,7 @@ def FindInstructionRecord(hex_fmt, PC):
 class AVR8BitCPU:
     def __init__(self, RAM_size, flash_size, ext_IO_size, IO_names, ext_IO_names, is_PC_16_bits=True):
         # CPU
-        self.regs          = [ 0 for i in range(32) ]
+        self.regs          = [ 0 ] * 32
         self.cycles        = 0
         self.SREG          = 0
         self.PC            = 0
@@ -1278,9 +1278,9 @@ class AVR8BitCPU:
         self.is_PC_16_bits = is_PC_16_bits
 
         # Data space
-        self.IO            = [ 0 for i in range(64) ]
-        self.ext_IO        = [ 0 for i in range(ext_IO_size) ]
-        self.RAM           = [ 0 for i in range(RAM_size) ]
+        self.IO            = [ 0 ] * 64
+        self.ext_IO        = [ 0 ] * ext_IO_size
+        self.RAM           = [ 0 ] * RAM_size
         self.IO_names      = IO_names
         self.ext_IO_names  = ext_IO_names
 
@@ -1421,6 +1421,9 @@ class AVR8BitCPU:
 
         if self.ext_IO:
             if addr < (32 + 64 + len(self.ext_IO)):
+                if IS_LOG_READ_IO:
+                    ext_IO_idx = addr - 32 - 64
+                    print('Read  EXT_IO: 0x%02x  -> %s    val: 0x%02x' % (addr, self.ext_IO_names[ext_IO_idx], val))
                 return self.ext_IO[addr - (32 + 64)]
 
             return self.RAM[addr - (32 + 64 + len(self.ext_IO))]
@@ -1440,6 +1443,9 @@ class AVR8BitCPU:
 
         if self.ext_IO:
             if addr < (32 + 64 + len(self.ext_IO)):
+                if IS_LOG_WRITE_IO:
+                    ext_IO_idx = addr - 32 - 64
+                    print('Write EXT_IO: 0x%02x  -> %s    val: 0x%02x' % (addr, self.ext_IO_names[ext_IO_idx], val))
                 self.ext_IO[addr - (32 + 64)] = val
                 return
 

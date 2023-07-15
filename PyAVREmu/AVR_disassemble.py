@@ -10,6 +10,7 @@ import os
 import sys
 
 import AVR_CPU
+import AVR_emu
 import Intel_hex
 
 
