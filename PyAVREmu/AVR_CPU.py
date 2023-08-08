@@ -22,7 +22,7 @@ SREG_N = 2
 SREG_Z = 1
 SREG_C = 0
 
-SP_MASK = (1 << 11) - 1
+SP_MASK = (1 << 11) - 1     # 0x7FF
 
 
 
@@ -233,7 +233,7 @@ def ADD(cpu, Rd, Rr):
 # Add Immediate to Word
 def ADIW(cpu, Rd, K):
     Pd = (cpu.regs[Rd + 1] << 8) | cpu.regs[Rd]
-    R = Pd + K
+    R = (Pd + K) & 0xffff
     UpdateC16bit(cpu, Pd, R)
     UpdateV16bit(cpu, Pd, R)
     UpdateN(cpu, R, 16)
@@ -518,6 +518,7 @@ def INC(cpu, Rd):
     UpdateN(cpu, R)
     UpdateZ(cpu, R)
     UpdateS(cpu)
+    cpu.regs[Rd] = R
 
 
 def JMP(cpu, K):
@@ -650,7 +651,6 @@ def MOVW(cpu, Rd, Rr):
 
 # Multiply Unsigned
 def MUL(cpu, Rd, Rr):
-    #raise NotImplementedError("MUL not implemented!")
     R = cpu.regs[Rd] * cpu.regs[Rr]
     c = (R & 0x10000) == 0x10000
     SetSREGValue(cpu, SREG_C, c)
@@ -777,7 +777,7 @@ def ROR(cpu, Rd):
 # Subtract with Carry
 def SBC(cpu, Rd, Rr):
     c = 0 + GetSREG(cpu, SREG_C)
-    R = (cpu.regs[Rd] - cpu.regs[Rd] - c) & 0xff
+    R = (cpu.regs[Rd] - cpu.regs[Rr] - c) & 0xff
     UpdateH(cpu, cpu.regs[Rd], cpu.regs[Rr], R)
     UpdateC(cpu, cpu.regs[Rd], cpu.regs[Rr], R)
     UpdateV(cpu, cpu.regs[Rd], cpu.regs[Rr], R)
@@ -1401,7 +1401,7 @@ class AVR8BitCPU:
         # TODO: Call registered hook function!
         IO_name = self.IO_names[addr]
         if IS_LOG_WRITE_IO:
-            print('********** WRITE IO SET BIT  %s  %02x   %d' % (IO_name, addr, b))
+            print('********** WRITE IO SET BIT  %s  A:%02x   V:%d' % (IO_name, addr, b))
         self.IO[addr] != (1 << b)
 
 
@@ -1421,10 +1421,11 @@ class AVR8BitCPU:
 
         if self.ext_IO:
             if addr < (32 + 64 + len(self.ext_IO)):
+                ext_IO_idx = addr - 32 - 64
+                val = self.ext_IO[ext_IO_idx]
                 if IS_LOG_READ_IO:
-                    ext_IO_idx = addr - 32 - 64
                     print('Read  EXT_IO: 0x%02x  -> %s    val: 0x%02x' % (addr, self.ext_IO_names[ext_IO_idx], val))
-                return self.ext_IO[addr - (32 + 64)]
+                return val
 
             return self.RAM[addr - (32 + 64 + len(self.ext_IO))]
 
